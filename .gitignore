@@ -1,0 +1,26 @@
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Generated files
+/public/generated/*
+!/public/generated/.gitkeep
+
+# Logs
+*.log
+
+# Cache
+.phpunit.cache/
