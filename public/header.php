@@ -16,7 +16,29 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CodePilot - High-performance AI-powered code assistant with multi-provider support (DeepSeek, Gemini, Ollama, HuggingFace). Build, debug, and optimize code faster.">
+    <meta name="keywords" content="AI coding assistant, CodePilot, Tarek Tarabichi, DeepSeek, Gemini, Code IDE, Ollama, LLM coding, 2TInteractive">
+    <meta name="author" content="Tarek Tarabichi - 2TInteractive">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>">
+    <meta property="og:title" content="<?php echo htmlspecialchars($appName); ?> - AI Code Assistant">
+    <meta property="og:description" content="An advanced AI coding IDE featuring multi-provider chat, project management, and Monaco editor.">
+    <meta property="og:image" content="assets/img/favicon.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="<?php echo htmlspecialchars($appName); ?> - AI Code Assistant">
+    <meta property="twitter:description" content="An advanced AI coding IDE featuring multi-provider chat, project management, and Monaco editor.">
+    <meta property="twitter:image" content="assets/img/favicon.png">
+
     <title><?php echo htmlspecialchars($appName); ?> - AI Code Assistant</title>
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="assets/img/favicon.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -83,7 +105,8 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <!-- Footer -->
         <div style="margin-top: auto; padding: 16px; border-top: 1px solid var(--border-color); text-align: center;">
             <small style="color: var(--text-muted); font-size: 11px;">
-                Made with ❤️ by <?php echo htmlspecialchars($config['companyName']); ?>
+                © <?php echo date('Y'); ?> 2TInteractive<br>
+                Crafted by <strong>Tarek Tarabichi</strong>
             </small>
         </div>
     </aside>

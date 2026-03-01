@@ -33,12 +33,20 @@
 
 <div align="center">
 
-| Chat Interface                                                       | Studio                                                                   | Projects                                                                     |
-|----------------------------------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| ![Chat](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Chat) | ![Studio](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Studio) | ![Projects](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Projects) | <img width="1915" height="866" alt="image" src="https://github.com/user-attachments/assets/4a0b2cc9-1a3b-4193-bbdd-a79c97d2079e" />
-
+| Chat Interface                                 | Functional IDE                               | Studio                                             | Projects                                               |
+|------------------------------------------------|----------------------------------------------|----------------------------------------------------|--------------------------------------------------------|
+| ![Chat](public/assets/img/screenshot_chat.png) | ![IDE](public/assets/img/screenshot_ide.png) | ![Studio](public/assets/img/screenshot_studio.png) | ![Projects](public/assets/img/screenshot_projects.png) |
 
 </div>
+
+---
+
+## 💖 Support the Project
+
+If you find CodePilot useful, consider supporting its development:
+
+- **Buy Me A Coffee**: [LebToki](https://buymeacoffee.com/LebToki)
+- **Paypal**: [Donate via Paypal](https://www.paypal.com/donate/?hosted_button_id=TEEJNYQJA9B6U)
 
 ---
 
