@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$config = require dirname(__DIR__, 2) . '/src/config.php';
+$config = require_once dirname(__DIR__, 2) . '/src/config.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $prompt = $input['prompt'] ?? '';

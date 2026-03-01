@@ -3,7 +3,7 @@
  * CodePilot Header
  */
 
-$config = require dirname(__DIR__) . '/src/config.php';
+$config = require_once dirname(__DIR__) . '/src/config.php';
 $appName = $config['appName'] ?? 'CodePilot';
 $defaultProvider = $config['defaultProvider'] ?? 'deepseek';
 $defaultModel = $config['defaultModel'] ?? 'deepseek-chat';

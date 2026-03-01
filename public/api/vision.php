@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$config = require dirname(__DIR__, 2) . '/src/config.php';
+$config = require_once dirname(__DIR__, 2) . '/src/config.php';
 
 // Check for file upload or base64 image
 $imageData = null;

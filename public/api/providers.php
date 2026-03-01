@@ -6,7 +6,7 @@
 
 header('Content-Type: application/json');
 
-$config = require dirname(__DIR__, 2) . '/src/config.php';
+$config = require_once dirname(__DIR__, 2) . '/src/config.php';
 
 $action = $_GET['action'] ?? 'list';
 $provider = $_GET['provider'] ?? null;

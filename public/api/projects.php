@@ -33,7 +33,7 @@ if (!\CodePilot\Utils\Security::checkRateLimit($ip, 50, 3600)) {
     exit;
 }
 
-$config = require dirname(__DIR__, 2) . '/src/config.php';
+$config = require_once dirname(__DIR__, 2) . '/src/config.php';
 
 // Define workspaces with validation
 $workspaces = [
