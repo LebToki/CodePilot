@@ -1,18 +1,45 @@
 <?php
 /**
  * CodePilot Projects API
- * Manage projects across multiple workspaces
+ * Manage projects across multiple workspaces with security enhancements
  */
 
+// Security headers
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+// Initialize security and logging
+require_once dirname(__DIR__, 2) . '/src/Utils/Security.php';
+require_once dirname(__DIR__, 2) . '/src/Utils/Logger.php';
+
+\CodePilot\Utils\Logger::init();
+\CodePilot\Utils\Logger::info('Projects API request started');
+
+// Rate limiting
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+if (!\CodePilot\Utils\Security::checkRateLimit($ip, 50, 3600)) {
+    http_response_code(429);
+    \CodePilot\Utils\Logger::warning('Rate limit exceeded', ['ip' => $ip]);
+    echo json_encode(['error' => 'Too many requests. Please try again later.']);
+    exit;
+}
 
 $config = require dirname(__DIR__, 2) . '/src/config.php';
 
-// Define workspaces
+// Define workspaces with validation
 $workspaces = [
     'web' => [
         'name' => 'Web Projects',
-        'path' => 'C:/laragon/www',
+        'path' => 'D:/laragon/www',
         'icon' => '🌐',
         'languages' => ['php', 'html', 'css', 'javascript'],
     ],
@@ -23,6 +50,14 @@ $workspaces = [
         'languages' => ['python', 'nodejs', 'rust', 'go'],
     ],
 ];
+
+// Validate workspace paths exist
+foreach ($workspaces as $id => $workspace) {
+    if (!is_dir($workspace['path'])) {
+        \CodePilot\Utils\Logger::warning('Workspace path does not exist', ['workspace' => $id, 'path' => $workspace['path']]);
+        unset($workspaces[$id]);
+    }
+}
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
@@ -35,40 +70,78 @@ try {
             break;
             
         case 'list':
-            $workspace = $_GET['workspace'] ?? 'web';
-            $projects = listProjects($workspaces[$workspace]['path'] ?? $workspaces['web']['path']);
+            $workspace = \CodePilot\Utils\Security::sanitizeInput($_GET['workspace'] ?? 'web', 'string');
+            if (!isset($workspaces[$workspace])) {
+                throw new Exception('Invalid workspace');
+            }
+            $projects = listProjects($workspaces[$workspace]['path']);
             echo json_encode(['projects' => $projects]);
             break;
             
         case 'create':
             $input = json_decode(file_get_contents('php://input'), true);
-            $workspace = $input['workspace'] ?? 'web';
-            $name = $input['name'] ?? '';
-            $template = $input['template'] ?? 'empty';
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON');
+            }
             
+            $workspace = \CodePilot\Utils\Security::sanitizeInput($input['workspace'] ?? 'web', 'string');
+            $name = \CodePilot\Utils\Security::sanitizeInput($input['name'] ?? '', 'filename');
+            $template = \CodePilot\Utils\Security::sanitizeInput($input['template'] ?? 'empty', 'string');
+            
+            // Validate inputs
             if (empty($name)) {
                 throw new Exception('Project name required');
             }
             
+            if (!isset($workspaces[$workspace])) {
+                throw new Exception('Invalid workspace');
+            }
+            
+            $allowedTemplates = ['empty', 'php', 'python', 'nodejs', 'html', 'flask', 'express'];
+            if (!in_array($template, $allowedTemplates)) {
+                throw new Exception('Invalid template');
+            }
+            
+            // Validate name format
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $name)) {
+                throw new Exception('Project name can only contain letters, numbers, hyphens, and underscores');
+            }
+            
             $result = createProject($workspaces[$workspace]['path'], $name, $template);
+            \CodePilot\Utils\Logger::info('Project created', ['name' => $name, 'workspace' => $workspace, 'template' => $template]);
             echo json_encode($result);
             break;
             
         case 'delete':
             $input = json_decode(file_get_contents('php://input'), true);
-            $path = $input['path'] ?? '';
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Invalid JSON');
+            }
+            
+            $path = \CodePilot\Utils\Security::sanitizeInput($input['path'] ?? '', 'path');
             
             if (empty($path) || !isValidProjectPath($path, $workspaces)) {
                 throw new Exception('Invalid project path');
             }
             
+            // Additional security: ensure path is within allowed workspaces
+            $realPath = realpath($path);
+            if (!$realPath) {
+                throw new Exception('Project not found');
+            }
+            
             $result = deleteProject($path);
+            \CodePilot\Utils\Logger::info('Project deleted', ['path' => $path]);
             echo json_encode($result);
             break;
             
         case 'info':
-            $path = $_GET['path'] ?? '';
+            $path = \CodePilot\Utils\Security::sanitizeInput($_GET['path'] ?? '', 'path');
             if (empty($path)) throw new Exception('Path required');
+            
+            if (!isValidProjectPath($path, $workspaces)) {
+                throw new Exception('Invalid project path');
+            }
             
             $info = getProjectInfo($path);
             echo json_encode($info);
@@ -79,6 +152,7 @@ try {
     }
 } catch (Exception $e) {
     http_response_code(400);
+    \CodePilot\Utils\Logger::error('Projects API error', ['error' => $e->getMessage(), 'action' => $action]);
     echo json_encode(['error' => $e->getMessage()]);
 }
 

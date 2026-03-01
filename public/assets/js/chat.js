@@ -178,8 +178,12 @@ function addMessage(role, content, isError = false) {
     container.scrollTop = container.scrollHeight;
     
     // Highlight code blocks
-    if (typeof Prism !== 'undefined') {
-        Prism.highlightAllUnder(messageDiv);
+    if (typeof Prism !== 'undefined' && Prism.highlightAllUnder) {
+        try {
+            Prism.highlightAllUnder(messageDiv);
+        } catch (e) {
+            console.warn('Prism highlighting error:', e);
+        }
     }
 }
 
@@ -253,6 +257,158 @@ function copyCode() {
         const code = window.monacoEditor.getValue();
         navigator.clipboard.writeText(code);
         // Could add a toast notification here
+    }
+}
+
+// Terminal functionality
+function runCommand(command = null) {
+    const terminalOutput = document.getElementById('terminal-output');
+    const terminalCommand = document.getElementById('terminal-command');
+    const runBtn = document.getElementById('terminal-run-btn');
+    
+    const cmd = command || terminalCommand.value.trim();
+    if (!cmd) {
+        alert('Please enter a command');
+        return;
+    }
+    
+    // Add command to output
+    terminalOutput.textContent += `$ ${cmd}\n`;
+    
+    // Disable button and show loading
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<iconify-icon icon="mdi:loading" class="spin"></iconify-icon> Running...';
+    
+    // Execute command
+    fetch('api/terminal.php?action=execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            command: cmd,
+            projectPath: currentProject || '',
+            timeout: 120
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            terminalOutput.textContent += `Error: ${data.error}\n\n`;
+        } else {
+            terminalOutput.textContent += `${data.output}\n`;
+            if (data.returnCode !== 0) {
+                terminalOutput.textContent += `[Exit code: ${data.returnCode}]\n`;
+            }
+        }
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    })
+    .catch(error => {
+        terminalOutput.textContent += `Network error: ${error.message}\n\n`;
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    })
+    .finally(() => {
+        // Re-enable button
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<iconify-icon icon="mdi:play"></iconify-icon> Run';
+        terminalCommand.value = '';
+    });
+}
+
+function clearTerminal() {
+    document.getElementById('terminal-output').textContent = '';
+}
+
+// Editor tab switching
+document.querySelectorAll('.editor-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.editor-tab-content').forEach(c => c.style.display = 'none');
+        
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Show corresponding content
+        const tabName = tab.dataset.tab;
+        if (tabName === 'editor') {
+            document.getElementById('monaco-editor').style.display = 'block';
+        } else if (tabName === 'terminal') {
+            document.getElementById('terminal-content').style.display = 'block';
+        } else if (tabName === 'tools') {
+            document.getElementById('tools-content').style.display = 'block';
+        }
+    });
+});
+
+// AI Tools functionality
+async function analyzeCode(action) {
+    const toolsOutput = document.getElementById('tools-output');
+    const sourceLang = document.getElementById('tools-source-lang').value;
+    const targetLang = document.getElementById('tools-target-lang').value;
+    const code = window.monacoEditor.getValue();
+    
+    if (!code) {
+        alert('Please open a file first');
+        return;
+    }
+    
+    // Show loading
+    toolsOutput.textContent = 'Analyzing code...\n';
+    
+    try {
+        const payload = {
+            action: action,
+            code: code,
+            language: sourceLang
+        };
+        
+        // Add target language for conversion
+        if (action === 'convert-code') {
+            payload.targetLanguage = targetLang;
+        }
+        
+        const response = await fetch('api/ai-tools.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            toolsOutput.textContent = `Error: ${data.error}\n`;
+        } else {
+            let result = '';
+            switch (action) {
+                case 'explain-code':
+                    result = `## Code Explanation\n\n${data.explanation}`;
+                    break;
+                case 'optimize-code':
+                    result = `## Optimized Code\n\n${data.optimized}`;
+                    break;
+                case 'generate-tests':
+                    result = `## Generated Tests\n\n${data.tests}`;
+                    break;
+                case 'find-bugs':
+                    result = `## Bug Analysis\n\n${data.bugs}`;
+                    break;
+                case 'convert-code':
+                    result = `## Converted Code (${sourceLang} → ${targetLang})\n\n${data.converted}`;
+                    break;
+            }
+            toolsOutput.textContent = result;
+        }
+        
+        // Highlight code if available
+        if (typeof Prism !== 'undefined' && Prism.highlightAllUnder) {
+            try {
+                Prism.highlightAllUnder(toolsOutput);
+            } catch (e) {
+                console.warn('Prism highlighting error:', e);
+            }
+        }
+        
+    } catch (error) {
+        toolsOutput.textContent = `Network error: ${error.message}\n`;
     }
 }
 

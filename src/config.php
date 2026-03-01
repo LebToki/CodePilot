@@ -1,40 +1,76 @@
 <?php
 /**
- * CodePilot Configuration
+ * CodePilot Configuration with enhanced security and validation
  */
 
-// Load .env file
+// Initialize security and logging
+require_once dirname(__DIR__) . '/src/Utils/Security.php';
+require_once dirname(__DIR__) . '/src/Utils/Logger.php';
+
+\CodePilot\Utils\Logger::init();
+
+// Load .env file with validation
 $envFile = dirname(__DIR__) . '/.env';
+$envData = [];
+
 if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '#') === 0) continue;
-        if (strpos($line, '=') !== false) {
-            list($key, $value) = explode('=', $line, 2);
-            $_ENV[trim($key)] = trim($value);
-            putenv(trim($key) . '=' . trim($value));
+    try {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos($line, '#') === 0) continue;
+            if (strpos($line, '=') !== false) {
+                list($key, $value) = explode('=', $line, 2);
+                $key = trim($key);
+                $value = trim($value);
+                
+                // Validate key format
+                if (!preg_match('/^[A-Z_][A-Z0-9_]*$/', $key)) {
+                    \CodePilot\Utils\Logger::warning('Invalid environment variable key', ['key' => $key]);
+                    continue;
+                }
+                
+                $envData[$key] = $value;
+                $_ENV[$key] = $value;
+                putenv("$key=$value");
+            }
         }
+    } catch (Exception $e) {
+        \CodePilot\Utils\Logger::error('Failed to load .env file', ['error' => $e->getMessage()]);
     }
 }
 
-return [
+// Configuration with validation and defaults
+$config = [
     // App
-    'appName' => $_ENV['APP_NAME'] ?? 'CodePilot',
-    'debug' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+    'appName' => $envData['APP_NAME'] ?? 'CodePilot',
+    'debug' => ($envData['APP_DEBUG'] ?? 'false') === 'true',
+    'version' => '1.0.0',
+    'environment' => $envData['APP_ENV'] ?? 'production',
+    
+    // Security
+    'security' => [
+        'rate_limit_requests' => (int)($envData['RATE_LIMIT_REQUESTS'] ?? 100),
+        'rate_limit_window' => (int)($envData['RATE_LIMIT_WINDOW'] ?? 3600),
+        'max_file_size' => (int)($envData['MAX_FILE_SIZE'] ?? 10485760), // 10MB
+        'allowed_file_types' => ['png', 'jpg', 'jpeg', 'webp', 'gif', 'txt', 'md', 'js', 'php', 'py', 'html', 'css'],
+    ],
     
     // Default Provider
-    'defaultProvider' => $_ENV['DEFAULT_PROVIDER'] ?? 'deepseek',
-    'defaultModel' => $_ENV['DEFAULT_MODEL'] ?? 'deepseek-chat',
+    'defaultProvider' => $envData['DEFAULT_PROVIDER'] ?? 'deepseek',
+    'defaultModel' => $envData['DEFAULT_MODEL'] ?? 'deepseek-chat',
+    'allowedProviders' => ['ollama', 'deepseek', 'gemini', 'huggingface'],
     
     // Ollama
     'ollama' => [
-        'apiUrl' => $_ENV['OLLAMA_API_URL'] ?? 'http://localhost:11434/api',
+        'apiUrl' => $envData['OLLAMA_API_URL'] ?? 'http://localhost:11434/api',
+        'timeout' => (int)($envData['OLLAMA_TIMEOUT'] ?? 120),
     ],
     
     // DeepSeek
     'deepseek' => [
-        'apiKey' => $_ENV['DEEPSEEK_API_KEY'] ?? '',
-        'apiUrl' => $_ENV['DEEPSEEK_API_URL'] ?? 'https://api.deepseek.com/v1',
+        'apiKey' => $envData['DEEPSEEK_API_KEY'] ?? '',
+        'apiUrl' => $envData['DEEPSEEK_API_URL'] ?? 'https://api.deepseek.com/v1',
+        'timeout' => (int)($envData['DEEPSEEK_TIMEOUT'] ?? 120),
         'models' => [
             'deepseek-chat' => 'DeepSeek Chat',
             'deepseek-coder' => 'DeepSeek Coder',
@@ -44,7 +80,8 @@ return [
     
     // Gemini
     'gemini' => [
-        'apiKey' => $_ENV['GEMINI_API_KEY'] ?? '',
+        'apiKey' => $envData['GEMINI_API_KEY'] ?? '',
+        'timeout' => (int)($envData['GEMINI_TIMEOUT'] ?? 120),
         'models' => [
             // Gemini 2.5 (Latest)
             'gemini-2.5-pro-preview-06-05' => 'Gemini 2.5 Pro',
@@ -62,8 +99,9 @@ return [
     
     // HuggingFace
     'huggingface' => [
-        'apiKey' => $_ENV['HUGGINGFACE_API_KEY'] ?? '',
-        'apiUrl' => $_ENV['HUGGINGFACE_API_URL'] ?? 'https://api-inference.huggingface.co/v1',
+        'apiKey' => $envData['HUGGINGFACE_API_KEY'] ?? '',
+        'apiUrl' => $envData['HUGGINGFACE_API_URL'] ?? 'https://api-inference.huggingface.co/v1',
+        'timeout' => (int)($envData['HUGGINGFACE_TIMEOUT'] ?? 120),
         'models' => [
             'meta-llama/Llama-3.3-70B-Instruct' => 'Llama 3.3 70B',
             'Qwen/Qwen2.5-Coder-32B-Instruct' => 'Qwen 2.5 Coder 32B',
@@ -71,8 +109,82 @@ return [
         ],
     ],
     
+    // Workspaces
+    'workspaces' => [
+        'web' => [
+            'name' => 'Web Projects',
+            'path' => $envData['WEB_WORKSPACE_PATH'] ?? 'D:/laragon/www',
+            'icon' => '🌐',
+            'languages' => ['php', 'html', 'css', 'javascript'],
+        ],
+        'platform' => [
+            'name' => 'Platform Projects', 
+            'path' => $envData['PLATFORM_WORKSPACE_PATH'] ?? 'E:/platform',
+            'icon' => '🐍',
+            'languages' => ['python', 'nodejs', 'rust', 'go'],
+        ],
+    ],
+    
     // Branding
-    'developerName' => $_ENV['DEVELOPER_NAME'] ?? 'Developer',
-    'companyName' => $_ENV['COMPANY_NAME'] ?? 'Company',
-    'companyUrl' => $_ENV['COMPANY_URL'] ?? '#',
+    'developerName' => $envData['DEVELOPER_NAME'] ?? 'Developer',
+    'companyName' => $envData['COMPANY_NAME'] ?? 'Company',
+    'companyUrl' => $envData['COMPANY_URL'] ?? '#',
+    'supportEmail' => $envData['SUPPORT_EMAIL'] ?? '',
+    
+    // Paths
+    'paths' => [
+        'data' => dirname(__DIR__) . '/data',
+        'logs' => dirname(__DIR__) . '/data/logs',
+        'generated' => dirname(__DIR__) . '/public/generated',
+        'temp' => sys_get_temp_dir(),
+    ],
 ];
+
+// Validate configuration
+validateConfig($config);
+
+// Log configuration load
+\CodePilot\Utils\Logger::info('Configuration loaded', [
+    'app_name' => $config['appName'],
+    'environment' => $config['environment'],
+    'debug' => $config['debug'],
+    'default_provider' => $config['defaultProvider'],
+]);
+
+return $config;
+
+/**
+ * Validate configuration values
+ */
+function validateConfig(array $config): void
+{
+    // Validate app name
+    if (empty($config['appName'])) {
+        throw new Exception('Application name cannot be empty');
+    }
+    
+    // Validate default provider
+    if (!in_array($config['defaultProvider'], $config['allowedProviders'])) {
+        throw new Exception('Invalid default provider: ' . $config['defaultProvider']);
+    }
+    
+    // Validate workspace paths
+    foreach ($config['workspaces'] as $id => $workspace) {
+        if (!is_dir($workspace['path'])) {
+            \CodePilot\Utils\Logger::warning('Workspace path does not exist', ['workspace' => $id, 'path' => $workspace['path']]);
+        }
+    }
+    
+    // Validate API keys for cloud providers
+    if ($config['defaultProvider'] === 'deepseek' && empty($config['deepseek']['apiKey'])) {
+        \CodePilot\Utils\Logger::warning('DeepSeek API key not configured');
+    }
+    
+    if ($config['defaultProvider'] === 'gemini' && empty($config['gemini']['apiKey'])) {
+        \CodePilot\Utils\Logger::warning('Gemini API key not configured');
+    }
+    
+    if ($config['defaultProvider'] === 'huggingface' && empty($config['huggingface']['apiKey'])) {
+        \CodePilot\Utils\Logger::warning('HuggingFace API key not configured');
+    }
+}

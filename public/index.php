@@ -101,34 +101,120 @@ $projectPath = $_GET['project'] ?? '';
     </div>
     
     <!-- Editor Panel -->
-    <div class="editor-panel" id="editor-panel">
-        <div class="editor-header">
-            <div class="editor-tabs">
-                <button class="editor-tab active" data-tab="editor">Editor</button>
-                <button class="editor-tab" data-tab="output">Output</button>
+        <div class="editor-panel" id="editor-panel">
+            <div class="editor-header">
+                <div class="editor-tabs">
+                    <button class="editor-tab active" data-tab="editor">Editor</button>
+                    <button class="editor-tab" data-tab="terminal">Terminal</button>
+                    <button class="editor-tab" data-tab="tools">AI Tools</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <select id="language-select" class="model-select" style="min-width: 120px;">
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="php">PHP</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="json">JSON</option>
+                    </select>
+                    <button class="btn-icon" onclick="saveFile()" title="Save File">
+                        <iconify-icon icon="mdi:content-save"></iconify-icon>
+                    </button>
+                    <button class="btn-icon" onclick="copyCode()" title="Copy Code">
+                        <iconify-icon icon="mdi:content-copy"></iconify-icon>
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <select id="language-select" class="model-select" style="min-width: 120px;">
-                    <option value="javascript">JavaScript</option>
-                    <option value="python">Python</option>
-                    <option value="php">PHP</option>
-                    <option value="typescript">TypeScript</option>
-                    <option value="html">HTML</option>
-                    <option value="css">CSS</option>
-                    <option value="json">JSON</option>
-                </select>
-                <button class="btn-icon" onclick="saveFile()" title="Save File">
-                    <iconify-icon icon="mdi:content-save"></iconify-icon>
-                </button>
-                <button class="btn-icon" onclick="copyCode()" title="Copy Code">
-                    <iconify-icon icon="mdi:content-copy"></iconify-icon>
-                </button>
+            <div class="editor-content">
+                <div id="monaco-editor" class="editor-tab-content active"></div>
+                <div id="terminal-content" class="editor-tab-content" style="display: none; padding: 16px;">
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <input type="text" id="terminal-command" class="form-input" placeholder="Enter command (e.g., npm install, git status, php artisan serve)" style="flex: 1;">
+                        <button class="btn btn-primary" onclick="runCommand()" id="terminal-run-btn">
+                            <iconify-icon icon="mdi:play"></iconify-icon>
+                            Run
+                        </button>
+                        <button class="btn" onclick="clearTerminal()">
+                            <iconify-icon icon="mdi:clear"></iconify-icon>
+                            Clear
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="btn" onclick="runCommand('npm install')" title="Install dependencies">
+                            <iconify-icon icon="mdi:package-variant"></iconify-icon>
+                            npm install
+                        </button>
+                        <button class="btn" onclick="runCommand('npm run dev')" title="Start development server">
+                            <iconify-icon icon="mdi:rocket-launch"></iconify-icon>
+                            npm run dev
+                        </button>
+                        <button class="btn" onclick="runCommand('composer install')" title="Install PHP dependencies">
+                            <iconify-icon icon="mdi:composer"></iconify-icon>
+                            composer install
+                        </button>
+                        <button class="btn" onclick="runCommand('git status')" title="Git status">
+                            <iconify-icon icon="mdi:git"></iconify-icon>
+                            git status
+                        </button>
+                    </div>
+                    <div id="terminal-output" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;"></div>
+                </div>
+                <div id="tools-content" class="editor-tab-content" style="display: none; padding: 16px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Source Language</label>
+                            <select id="tools-source-lang" class="form-input">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="php">PHP</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="java">Java</option>
+                                <option value="csharp">C#</option>
+                                <option value="rust">Rust</option>
+                                <option value="go">Go</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Target Language (for conversion)</label>
+                            <select id="tools-target-lang" class="form-input">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="php">PHP</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="java">Java</option>
+                                <option value="csharp">C#</option>
+                                <option value="rust">Rust</option>
+                                <option value="go">Go</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="analyzeCode('explain-code')" title="Explain Code">
+                            <iconify-icon icon="mdi:help-circle"></iconify-icon>
+                            Explain
+                        </button>
+                        <button class="btn" onclick="analyzeCode('optimize-code')" title="Optimize Code">
+                            <iconify-icon icon="mdi:rocket"></iconify-icon>
+                            Optimize
+                        </button>
+                        <button class="btn" onclick="analyzeCode('generate-tests')" title="Generate Tests">
+                            <iconify-icon icon="mdi:test-tube"></iconify-icon>
+                            Tests
+                        </button>
+                        <button class="btn" onclick="analyzeCode('find-bugs')" title="Find Bugs">
+                            <iconify-icon icon="mdi:bug"></iconify-icon>
+                            Bugs
+                        </button>
+                        <button class="btn" onclick="analyzeCode('convert-code')" title="Convert Code">
+                            <iconify-icon icon="mdi:swap-horizontal"></iconify-icon>
+                            Convert
+                        </button>
+                    </div>
+                    <div id="tools-output" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;"></div>
+                </div>
             </div>
         </div>
-        <div class="editor-content">
-            <div id="monaco-editor"></div>
-        </div>
-    </div>
 </main>
 
 <!-- Monaco Editor -->

@@ -11,7 +11,7 @@ $path = $_GET['path'] ?? $_POST['path'] ?? '';
 
 // Security: Validate path is within allowed directories
 $allowedPaths = [
-    'C:/laragon/www',
+    'D:/laragon/www',
     'E:/platform',
 ];
 
@@ -29,7 +29,7 @@ try {
             if (empty($path)) throw new Exception('Path required');
             validatePath($path, $allowedPaths);
             
-            $content = readFile($path);
+            $content = read_file($path);
             echo json_encode(['content' => $content, 'path' => $path]);
             break;
             
@@ -169,7 +169,7 @@ function listDirectory($path) {
 /**
  * Read file content
  */
-function readFile($path) {
+function read_file($path) {
     if (!is_file($path)) {
         throw new Exception('Not a file');
     }

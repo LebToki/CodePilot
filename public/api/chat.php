@@ -1,32 +1,103 @@
 <?php
 /**
  * CodePilot Chat API
- * Multi-provider chat endpoint
+ * Multi-provider chat endpoint with security enhancements
  */
 
+// Security headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+// Initialize security and logging
+require_once dirname(__DIR__, 2) . '/src/Utils/Security.php';
+require_once dirname(__DIR__, 2) . '/src/Utils/Logger.php';
+
+\CodePilot\Utils\Logger::init();
+\CodePilot\Utils\Logger::info('Chat API request started');
+
+// Rate limiting
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+if (!\CodePilot\Utils\Security::checkRateLimit($ip, 100, 3600)) {
+    http_response_code(429);
+    \CodePilot\Utils\Logger::warning('Rate limit exceeded', ['ip' => $ip]);
+    echo json_encode(['error' => 'Too many requests. Please try again later.']);
+    exit;
+}
+
 $config = require dirname(__DIR__, 2) . '/src/config.php';
 
-// Get request data
+// Get and validate request data
 $input = json_decode(file_get_contents('php://input'), true);
-$provider = $input['provider'] ?? 'deepseek';
-$model = $input['model'] ?? 'deepseek-chat';
-$messages = $input['messages'] ?? [];
-$stream = $input['stream'] ?? false;
 
-if (empty($messages)) {
+// Check if JSON parsing failed
+if (json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    \CodePilot\Utils\Logger::warning('Invalid JSON received', ['error' => json_last_error_msg()]);
+    echo json_encode(['error' => 'Invalid JSON: ' . json_last_error_msg()]);
+    exit;
+}
+
+// Validate input
+$provider = \CodePilot\Utils\Security::sanitizeInput($input['provider'] ?? 'deepseek', 'string');
+$model = \CodePilot\Utils\Security::sanitizeInput($input['model'] ?? 'deepseek-chat', 'string');
+$messages = $input['messages'] ?? [];
+$stream = filter_var($input['stream'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+// Validate provider
+$allowedProviders = ['ollama', 'deepseek', 'gemini', 'huggingface'];
+if (!in_array($provider, $allowedProviders)) {
+    http_response_code(400);
+    \CodePilot\Utils\Logger::warning('Invalid provider', ['provider' => $provider]);
+    echo json_encode(['error' => 'Invalid provider']);
+    exit;
+}
+
+// Validate messages
+if (empty($messages) || !is_array($messages)) {
     http_response_code(400);
     echo json_encode(['error' => 'No messages provided']);
     exit;
 }
+
+// Validate and sanitize messages
+$sanitizedMessages = [];
+foreach ($messages as $message) {
+    if (!isset($message['role']) || !isset($message['content'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid message format']);
+        exit;
+    }
+    
+    $role = \CodePilot\Utils\Security::sanitizeInput($message['role'], 'string');
+    $content = \CodePilot\Utils\Security::sanitizeInput($message['content'], 'string');
+    
+    // Validate role
+    if (!in_array($role, ['system', 'user', 'assistant'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid message role']);
+        exit;
+    }
+    
+    // Limit message content length
+    if (strlen($content) > 10000) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Message content too long']);
+        exit;
+    }
+    
+    $sanitizedMessages[] = ['role' => $role, 'content' => $content];
+}
+
+$messages = $sanitizedMessages;
 
 // Add system prompt for coding assistant
 $systemPrompt = "You are CodePilot, an expert AI coding assistant. You help with:
@@ -44,6 +115,13 @@ if (empty($messages) || $messages[0]['role'] !== 'system') {
     array_unshift($messages, ['role' => 'system', 'content' => $systemPrompt]);
 }
 
+// Log request
+\CodePilot\Utils\Logger::info('Chat request', [
+    'provider' => $provider,
+    'model' => $model,
+    'messages_count' => count($messages),
+    'ip' => $ip
+]);
 try {
     switch ($provider) {
         case 'ollama':
@@ -62,11 +140,15 @@ try {
             throw new Exception("Unknown provider: $provider");
     }
     
+    // Sanitize response before sending
+    $response = \CodePilot\Utils\Security::sanitizeInput($response, 'string');
+    
     echo json_encode(['response' => $response]);
     
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    \CodePilot\Utils\Logger::error('Chat API error', ['error' => $e->getMessage()]);
+    echo json_encode(['error' => 'An error occurred while processing your request']);
 }
 
 /**
