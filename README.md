@@ -35,7 +35,8 @@
 
 | Chat Interface                                                       | Studio                                                                   | Projects                                                                     |
 |----------------------------------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| ![Chat](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Chat) | ![Studio](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Studio) | ![Projects](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Projects) |
+| ![Chat](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Chat) | ![Studio](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Studio) | ![Projects](https://via.placeholder.com/300x200/1a1a2e/ffffff?text=Projects) | <img width="1915" height="866" alt="image" src="https://github.com/user-attachments/assets/4a0b2cc9-1a3b-4193-bbdd-a79c97d2079e" />
+
 
 </div>
 
