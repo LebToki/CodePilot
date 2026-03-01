@@ -3,7 +3,7 @@
  * CodePilot Settings
  */
 require_once __DIR__ . '/header.php';
-$config = require dirname(__DIR__) . '/src/config.php';
+$config = require_once dirname(__DIR__) . '/src/config.php';
 ?>
 
 <main class="main-content">

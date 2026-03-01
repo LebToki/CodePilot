@@ -153,38 +153,40 @@ validateConfig($config);
 
 return $config;
 
-/**
- * Validate configuration values
- */
-function validateConfig(array $config): void
-{
-    // Validate app name
-    if (empty($config['appName'])) {
-        throw new Exception('Application name cannot be empty');
-    }
-    
-    // Validate default provider
-    if (!in_array($config['defaultProvider'], $config['allowedProviders'])) {
-        throw new Exception('Invalid default provider: ' . $config['defaultProvider']);
-    }
-    
-    // Validate workspace paths
-    foreach ($config['workspaces'] as $id => $workspace) {
-        if (!is_dir($workspace['path'])) {
-            \CodePilot\Utils\Logger::warning('Workspace path does not exist', ['workspace' => $id, 'path' => $workspace['path']]);
+if (!function_exists('validateConfig')) {
+    /**
+     * Validate configuration values
+     */
+    function validateConfig(array $config): void
+    {
+        // Validate app name
+        if (empty($config['appName'])) {
+            throw new Exception('Application name cannot be empty');
         }
-    }
-    
-    // Validate API keys for cloud providers
-    if ($config['defaultProvider'] === 'deepseek' && empty($config['deepseek']['apiKey'])) {
-        \CodePilot\Utils\Logger::warning('DeepSeek API key not configured');
-    }
-    
-    if ($config['defaultProvider'] === 'gemini' && empty($config['gemini']['apiKey'])) {
-        \CodePilot\Utils\Logger::warning('Gemini API key not configured');
-    }
-    
-    if ($config['defaultProvider'] === 'huggingface' && empty($config['huggingface']['apiKey'])) {
-        \CodePilot\Utils\Logger::warning('HuggingFace API key not configured');
+        
+        // Validate default provider
+        if (!in_array($config['defaultProvider'], $config['allowedProviders'])) {
+            throw new Exception('Invalid default provider: ' . $config['defaultProvider']);
+        }
+        
+        // Validate workspace paths
+        foreach ($config['workspaces'] as $id => $workspace) {
+            if (!is_dir($workspace['path'])) {
+                \CodePilot\Utils\Logger::warning('Workspace path does not exist', ['workspace' => $id, 'path' => $workspace['path']]);
+            }
+        }
+        
+        // Validate API keys for cloud providers
+        if ($config['defaultProvider'] === 'deepseek' && empty($config['deepseek']['apiKey'])) {
+            \CodePilot\Utils\Logger::warning('DeepSeek API key not configured');
+        }
+        
+        if ($config['defaultProvider'] === 'gemini' && empty($config['gemini']['apiKey'])) {
+            \CodePilot\Utils\Logger::warning('Gemini API key not configured');
+        }
+        
+        if ($config['defaultProvider'] === 'huggingface' && empty($config['huggingface']['apiKey'])) {
+            \CodePilot\Utils\Logger::warning('HuggingFace API key not configured');
+        }
     }
 }
