@@ -7,7 +7,7 @@ require_once __DIR__ . '/header.php';
 ?>
 
 <main class="main-content">
-    <div style="padding: 32px; max-width: 800px; margin: 0 auto; width: 100%;">
+    <div style="padding: 32px; max-width: 1000px; margin: 0 auto; width: 100%; overflow-y: auto; height: 100%;">
         <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 8px;">Settings</h1>
         <p style="color: var(--text-secondary); margin-bottom: 32px;">Configure your AI providers and preferences</p>
         
@@ -20,7 +20,7 @@ require_once __DIR__ . '/header.php';
                     AI Providers
                 </h2>
                 
-                <div style="display: grid; gap: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                     <div class="form-group">
                         <label class="form-label">DeepSeek API Key</label>
                         <div style="position: relative;">
@@ -58,7 +58,9 @@ require_once __DIR__ . '/header.php';
                 </div>
             </div>
             
-            <!-- Branding -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Branding -->
             <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
                 <h2 style="font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                     <iconify-icon icon="mdi:brush"></iconify-icon>
@@ -84,8 +86,9 @@ require_once __DIR__ . '/header.php';
                     </div>
                 </div>
             </div>
-
-            <!-- Workspaces -->
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- Workspaces -->
             <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
                 <h2 style="font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                     <iconify-icon icon="mdi:folder-network"></iconify-icon>
@@ -103,9 +106,8 @@ require_once __DIR__ . '/header.php';
                     </div>
                 </div>
             </div>
-            
 
-            <!-- System Management -->
+        <!-- System Management -->
             <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
                 <h2 style="font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                     <iconify-icon icon="mdi:server"></iconify-icon>
@@ -125,6 +127,8 @@ require_once __DIR__ . '/header.php';
                     </div>
                 </div>
             </div>
+    </div>
+</div>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 40px;">
                 <button type="submit" id="save-btn" class="btn btn-primary" style="padding: 12px 32px;">
