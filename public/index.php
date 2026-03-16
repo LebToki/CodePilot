@@ -13,9 +13,25 @@ $projectPath = $_GET['project'] ?? '';
     <div class="file-browser" id="file-browser" style="<?php echo empty($projectPath) ? 'display: none;' : ''; ?>">
         <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Files</span>
-            <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close" aria-label="Close files panel">
-                <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
-            </button>
+            <div style="display: flex; gap: 4px;">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleSearch()" title="Search">
+                    <iconify-icon icon="mdi:magnify" style="font-size: 14px;"></iconify-icon>
+                </button>
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close">
+                    <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Panel (Hidden by default) -->
+        <div id="file-search-panel" style="display: none; padding: 12px; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="file-search-input" class="input" style="flex: 1;" placeholder="Search in project..." onkeydown="if(event.key === 'Enter') executeFileSearch()">
+                <button class="btn" onclick="executeFileSearch()" style="padding: 6px 12px;">Search</button>
+            </div>
+            <div id="file-search-results" style="max-height: 200px; overflow-y: auto; font-size: 12px;">
+                <!-- Search results here -->
+            </div>
         </div>
         <div class="file-tree" id="file-tree">
             <!-- Files loaded here -->
@@ -254,6 +270,85 @@ $projectPath = $_GET['project'] ?? '';
         }
     });
     
+        // Toggle search panel
+    function toggleSearch() {
+        const panel = document.getElementById('file-search-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        if (panel.style.display === 'block') {
+            document.getElementById('file-search-input').focus();
+        }
+    }
+
+    // Execute file search
+    async function executeFileSearch() {
+        const query = document.getElementById('file-search-input').value.trim();
+        const resultsContainer = document.getElementById('file-search-results');
+
+        if (!query || !currentProject) return;
+
+        resultsContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 10px;">Searching...</div>';
+
+        try {
+            const response = await fetch(`api/files.php?action=search&path=${encodeURIComponent(currentProject)}&query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            if (!data.results || data.results.length === 0) {
+                resultsContainer.innerHTML = '<div style="color: var(--text-muted); padding: 5px;">No matches found.</div>';
+                return;
+            }
+
+            let html = '';
+            data.results.forEach(file => {
+                html += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-weight: bold; color: var(--accent); cursor: pointer; padding: 2px 0;" onclick="openFileAndGoToLine('${file.path.replace(/\\/g, '/')}')">
+                            <iconify-icon icon="mdi:file-document"></iconify-icon> ${file.name}
+                        </div>
+                `;
+
+                if (file.matches && file.matches.length > 0) {
+                    file.matches.forEach(match => {
+                        html += `
+                            <div style="padding-left: 16px; cursor: pointer; color: var(--text-secondary); padding: 2px 0;" onclick="openFileAndGoToLine('${file.path.replace(/\\/g, '/')}', ${match.line})">
+                                <span style="color: var(--text-muted); width: 30px; display: inline-block;">${match.line}</span>
+                                <span style="background: var(--bg-tertiary); padding: 0 4px; border-radius: 2px;">${escapeHtml(match.text)}</span>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div>`;
+            });
+
+            resultsContainer.innerHTML = html;
+
+        } catch (error) {
+            resultsContainer.innerHTML = `<div style="color: var(--error); padding: 5px;">${error.message}</div>`;
+        }
+    }
+
+    // Open file and optionally go to line
+    async function openFileAndGoToLine(path, line = null) {
+        await openFile(path);
+
+        if (line && window.monacoEditor) {
+            setTimeout(() => {
+                window.monacoEditor.revealLineInCenter(line);
+                window.monacoEditor.setPosition({ lineNumber: line, column: 1 });
+            }, 100);
+        }
+    }
+
+    // Helper to escape HTML for search results
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
     // Load project
     function loadProject(path) {
         currentProject = path;
