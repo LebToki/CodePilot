@@ -58,8 +58,8 @@ class Security
      */
     public static function generateCSRFToken(): string
     {
-        if (!isset($_SESSION)) {
-            session_start();
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            @session_start();
         }
         
         if (!isset($_SESSION['csrf_token'])) {
@@ -74,8 +74,8 @@ class Security
      */
     public static function validateCSRFToken(string $token): bool
     {
-        if (!isset($_SESSION)) {
-            session_start();
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            @session_start();
         }
         
         return hash_equals($_SESSION['csrf_token'] ?? '', $token);

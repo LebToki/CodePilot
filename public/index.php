@@ -8,32 +8,45 @@ require_once __DIR__ . '/header.php';
 $projectPath = $_GET['project'] ?? '';
 ?>
 
+<style>
+.file-tabs::-webkit-scrollbar { height: 4px; }
+.file-tab { padding: 8px 16px; border-right: 1px solid var(--border-color); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--bg-tertiary); color: var(--text-secondary); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; min-width: max-content; }
+.file-tab:hover { background: var(--bg-secondary); }
+.file-tab.active { background: var(--bg-primary); color: var(--accent); border-bottom-color: var(--accent); }
+.file-tab .close-btn { opacity: 0.5; border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; transition: all 0.2s; }
+.file-tab .close-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); color: var(--error); }
+.editor-content { display: flex; flex-direction: column; }
+#monaco-editor { flex: 1; height: calc(100% - 36px); min-height: 0; }
+
+.file-item { display: flex; align-items: center; padding: 6px 12px; cursor: pointer; color: var(--text-secondary); }
+.file-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.file-item .file-actions { margin-left: auto; display: none; gap: 4px; }
+.file-item:hover .file-actions { display: flex; }
+.file-actions button { background: transparent; border: none; color: inherit; cursor: pointer; padding: 2px; border-radius: 4px; display: flex; align-items: center; justify-content: center; opacity: 0.7; }
+.file-actions button:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+</style>
+
 <main class="main-content">
     <!-- File Browser Panel -->
     <div class="file-browser" id="file-browser" style="<?php echo empty($projectPath) ? 'display: none;' : ''; ?>">
         <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Files</span>
             <div style="display: flex; gap: 4px;">
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleSearch()" title="Search">
-                    <iconify-icon icon="mdi:magnify" style="font-size: 14px;"></iconify-icon>
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('file')" title="New File">
+                    <iconify-icon icon="mdi:file-plus" style="font-size: 14px;"></iconify-icon>
+                </button>
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('directory')" title="New Folder">
+                    <iconify-icon icon="mdi:folder-plus" style="font-size: 14px;"></iconify-icon>
                 </button>
                 <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close">
                     <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
                 </button>
             </div>
         </div>
-
-        <!-- Search Panel (Hidden by default) -->
-        <div id="file-search-panel" style="display: none; padding: 12px; border-bottom: 1px solid var(--border-color);">
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="file-search-input" class="input" style="flex: 1;" placeholder="Search in project..." onkeydown="if(event.key === 'Enter') executeFileSearch()">
-                <button class="btn" onclick="executeFileSearch()" style="padding: 6px 12px;">Search</button>
-            </div>
-            <div id="file-search-results" style="max-height: 200px; overflow-y: auto; font-size: 12px;">
-                <!-- Search results here -->
-            </div>
+        <div style="padding: 8px;">
+            <input type="text" id="file-search" class="form-input" placeholder="Search files..." style="width: 100%; font-size: 12px; padding: 6px 10px;" oninput="filterFiles()">
         </div>
-        <div class="file-tree" id="file-tree">
+        <div class="file-tree" id="file-tree" style="height: calc(100% - 100px); overflow-y: auto;">
             <!-- Files loaded here -->
         </div>
     </div>
@@ -142,8 +155,9 @@ $projectPath = $_GET['project'] ?? '';
                     </button>
                 </div>
             </div>
-            <div class="editor-content">
-                <div id="monaco-editor" class="editor-tab-content active"></div>
+            <div class="editor-content" style="display: flex; flex-direction: column;">
+                <div id="file-tabs" class="file-tabs" style="display: flex; overflow-x: auto; background: var(--bg-primary); border-bottom: 1px solid var(--border-color); min-height: 36px;"></div>
+                <div id="monaco-editor" class="editor-tab-content active" style="flex: 1;"></div>
                 <div id="terminal-content" class="editor-tab-content" style="display: none; padding: 16px;">
                     <div style="display: flex; gap: 12px; margin-bottom: 16px;">
                         <input type="text" id="terminal-command" class="form-input" placeholder="Enter command (e.g., npm install, git status, php artisan serve)" style="flex: 1;">
@@ -174,7 +188,17 @@ $projectPath = $_GET['project'] ?? '';
                             git status
                         </button>
                     </div>
-                    <div id="terminal-output" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap;"></div>
+                    <div id="terminal-output" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 13px; min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 16px;"></div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Running Processes</span>
+                        <button class="btn" onclick="loadProcesses()" title="Refresh Processes" style="padding: 4px 8px; font-size: 12px;">
+                            <iconify-icon icon="mdi:refresh"></iconify-icon> Refresh
+                        </button>
+                    </div>
+                    <div id="running-processes" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; max-height: 200px; overflow-y: auto;">
+                        <div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 8px;">Click refresh to load processes</div>
+                    </div>
                 </div>
                 <div id="tools-content" class="editor-tab-content" style="display: none; padding: 16px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
@@ -239,6 +263,7 @@ $projectPath = $_GET['project'] ?? '';
     // Current project state
     let currentProject = localStorage.getItem('codepilot_project') || '<?php echo addslashes($projectPath); ?>';
     let currentFile = null;
+    let openFiles = {}; // Store open file models
     
     // Initialize Monaco Editor
     require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
@@ -386,6 +411,22 @@ $projectPath = $_GET['project'] ?? '';
         }
     }
     
+
+    // Filter files in the file browser
+    function filterFiles() {
+        const query = document.getElementById('file-search').value.toLowerCase();
+        const items = document.querySelectorAll('#file-tree .file-item');
+
+        items.forEach(item => {
+            const fileName = item.querySelector('span').textContent.toLowerCase();
+            if (fileName.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
     // Render file tree
     function renderFileTree(files, basePath) {
         return files.map(file => {
@@ -396,8 +437,18 @@ $projectPath = $_GET['project'] ?? '';
             
             return `
                 <div class="file-item ${currentFile === file.path ? 'selected' : ''}" onclick="${clickHandler}">
-                    <iconify-icon icon="${icon}" style="color: ${file.isDir ? 'var(--accent)' : 'var(--text-secondary)'};"></iconify-icon>
-                    <span>${file.name}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <iconify-icon icon="${icon}" style="color: ${file.isDir ? 'var(--accent)' : 'var(--text-secondary)'};"></iconify-icon>
+                        <span>${file.name}</span>
+                    </div>
+                    <div class="file-actions" onclick="event.stopPropagation();">
+                        <button onclick="renameFileItem(event, '${file.path.replace(/\\/g, '\\\\')}', '${file.name}')" title="Rename">
+                            <iconify-icon icon="mdi:pencil" style="font-size: 14px;"></iconify-icon>
+                        </button>
+                        <button onclick="deleteFileItem(event, '${file.path.replace(/\\/g, '\\\\')}')" title="Delete">
+                            <iconify-icon icon="mdi:delete" style="font-size: 14px;"></iconify-icon>
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -425,13 +476,16 @@ $projectPath = $_GET['project'] ?? '';
     // Open file in editor
     async function openFile(path) {
         try {
+            // Check if already open
+            if (openFiles[path]) {
+                switchToFile(path);
+                return;
+            }
+
             const response = await fetch(`api/files.php?action=read&path=${encodeURIComponent(path)}`);
             const data = await response.json();
             
             if (data.error) throw new Error(data.error);
-            
-            currentFile = path;
-            window.monacoEditor.setValue(data.content);
             
             // Detect language
             const ext = path.split('.').pop().toLowerCase();
@@ -441,31 +495,220 @@ $projectPath = $_GET['project'] ?? '';
                 'md': 'markdown', 'sql': 'sql', 'sh': 'shell', 'yml': 'yaml', 'yaml': 'yaml'
             };
             const lang = langMap[ext] || 'plaintext';
-            monaco.editor.setModelLanguage(window.monacoEditor.getModel(), lang);
-            document.getElementById('language-select').value = lang;
             
-            // Refresh file tree to show selection
-            loadFiles(currentProject);
+            // Store file content
+            openFiles[path] = {
+                content: data.content,
+                language: lang,
+                name: path.split('/').pop() || path.split('\\').pop()
+            };
+
+            switchToFile(path);
+            renderFileTabs();
             
         } catch (error) {
             alert('Error: ' + error.message);
         }
     }
     
+
+    function switchToFile(path) {
+        if (!openFiles[path]) return;
+
+        // Save current file's content before switching
+        if (currentFile && openFiles[currentFile]) {
+            openFiles[currentFile].content = window.monacoEditor.getValue();
+        }
+
+        currentFile = path;
+        const file = openFiles[path];
+
+        // Update Monaco Editor value and language
+        window.monacoEditor.setValue(file.content);
+        monaco.editor.setModelLanguage(window.monacoEditor.getModel(), file.language);
+
+        const langSelect = document.getElementById('language-select');
+        if (langSelect) langSelect.value = file.language;
+
+        renderFileTabs();
+
+        // Update file tree selection highlighting
+        const tree = document.getElementById('file-tree');
+        if (tree) {
+            const items = tree.querySelectorAll('.file-item');
+            items.forEach(item => item.classList.remove('selected'));
+
+            // Re-render tree to show selection
+            loadFiles(currentProject);
+        }
+    }
+
+    function closeFile(path) {
+        if (!openFiles[path]) return;
+
+        // Remove from open files
+        delete openFiles[path];
+
+        // If we closed the active file, switch to another one
+        if (currentFile === path) {
+            const remainingFiles = Object.keys(openFiles);
+            if (remainingFiles.length > 0) {
+                switchToFile(remainingFiles[remainingFiles.length - 1]);
+            } else {
+                currentFile = null;
+                window.monacoEditor.setValue('// Select a file or start coding...\n');
+                renderFileTabs();
+                // Update file tree selection
+                loadFiles(currentProject);
+            }
+        } else {
+            renderFileTabs();
+        }
+    }
+
+    function renderFileTabs() {
+        const tabsContainer = document.getElementById('file-tabs');
+        if (!tabsContainer) return;
+
+        let html = '';
+        for (const [path, file] of Object.entries(openFiles)) {
+            const isActive = path === currentFile;
+            html += `
+                <div class="file-tab ${isActive ? 'active' : ''}" onclick="switchToFile('${path.replace(/\\/g, '\\\\')}')">
+                    <span style="font-size: 13px;">${file.name}</span>
+                    <div class="close-btn" onclick="event.stopPropagation(); closeFile('${path.replace(/\\/g, '\\\\')}')">
+                        <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
+                    </div>
+                </div>
+            `;
+        }
+
+        tabsContainer.innerHTML = html;
+        tabsContainer.style.display = Object.keys(openFiles).length > 0 ? 'flex' : 'none';
+
+        // Ensure monaco editor takes full height if tabs are hidden
+        const editorDiv = document.getElementById('monaco-editor');
+        if (editorDiv) {
+            if (Object.keys(openFiles).length > 0) {
+                editorDiv.style.height = 'calc(100% - 36px)';
+            } else {
+                editorDiv.style.height = '100%';
+            }
+        }
+    }
+
+
+    // File Operations
+    async function createNewItem(type) {
+        if (!currentProject) {
+            alert('Please open a project first');
+            return;
+        }
+
+        const name = prompt(`Enter new ${type} name:`);
+        if (!name) return;
+
+        const path = currentProject + '/' + name;
+
+        try {
+            const response = await fetch('api/files.php?action=create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path, type })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            loadFiles(currentProject);
+        } catch (error) {
+            alert('Error creating ' + type + ': ' + error.message);
+        }
+    }
+
+    async function renameFileItem(event, oldPath, oldName) {
+        event.stopPropagation();
+
+        const newName = prompt('Enter new name:', oldName);
+        if (!newName || newName === oldName) return;
+
+        // Extract dir path and append new name
+        const lastSlashIndex = Math.max(oldPath.lastIndexOf('/'), oldPath.lastIndexOf('\\'));
+        const dirPath = oldPath.substring(0, lastSlashIndex);
+        const newPath = dirPath + '/' + newName;
+
+        try {
+            const response = await fetch('api/files.php?action=rename', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oldPath, newPath })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            // Handle active file rename
+            if (openFiles[oldPath]) {
+                const fileData = openFiles[oldPath];
+                fileData.name = newName;
+                openFiles[newPath] = fileData;
+                delete openFiles[oldPath];
+
+                if (currentFile === oldPath) {
+                    currentFile = newPath;
+                }
+                renderFileTabs();
+            }
+
+            loadFiles(currentProject);
+        } catch (error) {
+            alert('Error renaming item: ' + error.message);
+        }
+    }
+
+    async function deleteFileItem(event, path) {
+        event.stopPropagation();
+
+        if (!confirm('Are you sure you want to delete this item?')) return;
+
+        try {
+            const response = await fetch('api/files.php?action=delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            // Close file if it's open
+            if (openFiles[path]) {
+                closeFile(path);
+            }
+
+            loadFiles(currentProject);
+        } catch (error) {
+            alert('Error deleting item: ' + error.message);
+        }
+    }
+
     // Save file
     async function saveFile() {
-        if (!currentFile) {
+        if (!currentFile || !openFiles[currentFile]) {
             alert('No file open');
             return;
         }
         
         try {
+            // Update stored content
+            openFiles[currentFile].content = window.monacoEditor.getValue();
+
             const response = await fetch('api/files.php?action=write', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     path: currentFile,
-                    content: window.monacoEditor.getValue()
+                    content: openFiles[currentFile].content
                 })
             });
             
@@ -474,8 +717,11 @@ $projectPath = $_GET['project'] ?? '';
             
             // Visual feedback
             const btn = event.target.closest('button');
-            btn.style.background = 'var(--success)';
-            setTimeout(() => btn.style.background = '', 1000);
+            if (btn) {
+                const originalBg = btn.style.background;
+                btn.style.background = 'var(--success)';
+                setTimeout(() => btn.style.background = originalBg, 1000);
+            }
             
         } catch (error) {
             alert('Error: ' + error.message);

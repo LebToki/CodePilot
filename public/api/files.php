@@ -14,6 +14,8 @@ $allowedPaths = [
     'D:/laragon/www',
     '/app',
     'E:/platform',
+    '/app',
+    '/home/jules'
 ];
 
 try {

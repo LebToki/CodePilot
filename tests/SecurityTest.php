@@ -34,7 +34,7 @@ class SecurityTest
         $maliciousInput = '<script>alert("xss")</script>';
         $sanitized = Security::sanitizeInput($maliciousInput, 'string');
         $this->assertNotContains('<script>', $sanitized, 'XSS prevention');
-        $this->assertContains('<script>', $sanitized, 'HTML entities encoded');
+        $this->assertContains('alert(&quot;xss&quot;)', $sanitized, 'HTML entities encoded');
         
         // Test filename sanitization
         $filename = 'test<>:"/\\|?*.php';
@@ -59,6 +59,8 @@ class SecurityTest
         
         // Test valid path
         $validPath = '/tmp/test.txt';
+        if (!file_exists('/tmp')) mkdir('/tmp');
+        file_put_contents($validPath, 'test');
         $result = Security::validateFilePath($validPath, $allowedPaths);
         $this->assertNotNull($result, 'Valid path should be accepted');
         $this->assertEquals(realpath($validPath), $result, 'Real path returned');
@@ -81,11 +83,9 @@ class SecurityTest
         echo "Testing CSRF Protection...\n";
         
         // Start session for testing
-        if (!isset($_SESSION)) {
-            session_start();
+        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+            @session_start();
         }
-        session_destroy();
-        session_start();
         
         // Test token generation
         $token1 = Security::generateCSRFToken();

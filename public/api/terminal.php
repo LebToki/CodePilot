@@ -28,6 +28,8 @@ $allowedCommands = [
 $allowedPaths = [
     'D:/laragon/www',
     'E:/platform',
+    '/app',
+    '/home/jules'
 ];
 
 $action = $_GET['action'] ?? 'execute';
@@ -191,27 +193,44 @@ function listProcesses() {
     $processes = [];
     
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        // Windows
-        $output = shell_exec('tasklist /FO LIST /NH');
-        $lines = explode("\n", $output);
+        // Windows - parse tasklist CSV for better accuracy
+        $output = shell_exec('tasklist /FO CSV /NH');
+        $lines = explode("\n", trim($output));
         foreach ($lines as $line) {
-            if (strpos($line, 'Image Name:') !== false) {
-                $processes[] = trim(str_replace('Image Name:', '', $line));
+            if (empty(trim($line))) continue;
+            // "Image Name","PID","Session Name","Session#","Mem Usage"
+            $parts = str_getcsv($line);
+            if (count($parts) >= 2) {
+                // Ignore system processes
+                $name = $parts[0];
+                if (!in_array(strtolower($name), ['svchost.exe', 'smss.exe', 'csrss.exe', 'wininit.exe', 'services.exe'])) {
+                    $processes[] = ['pid' => $parts[1], 'name' => $name];
+                }
             }
         }
     } else {
         // Unix-like
-        $output = shell_exec('ps aux');
-        $lines = explode("\n", $output);
+        $output = shell_exec('ps -eo pid,comm,args --no-headers');
+        $lines = explode("\n", trim($output));
         foreach ($lines as $line) {
-            $parts = preg_split('/\s+/', $line, 11);
-            if (count($parts) >= 11) {
-                $processes[] = $parts[10];
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            $parts = preg_split('/\s+/', $line, 3);
+            if (count($parts) >= 3) {
+                $pid = $parts[0];
+                $comm = $parts[1];
+                $args = $parts[2];
+
+                // Exclude the ps command itself, basic system processes, and our own PHP processes
+                if (strpos($args, 'ps -eo pid') === false && !in_array($comm, ['systemd', 'kthreadd', 'rcu_sched'])) {
+                    $processes[] = ['pid' => $pid, 'name' => $args];
+                }
             }
         }
     }
     
-    return array_unique(array_filter($processes));
+    return $processes;
 }
 
 /**

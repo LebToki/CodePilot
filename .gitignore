@@ -24,4 +24,4 @@ Thumbs.db
 
 # Cache
 .phpunit.cache/
-data/rate_limit/
+data/rate_limit/*.json
