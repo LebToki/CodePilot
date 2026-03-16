@@ -82,6 +82,7 @@ function handleKeyDown(event) {
 // Auto-resize textarea
 function autoResizeTextarea() {
     const textarea = document.getElementById('chat-input');
+    if (!textarea) return;
     textarea.addEventListener('input', () => {
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
