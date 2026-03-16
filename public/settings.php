@@ -3,7 +3,7 @@
  * CodePilot Settings
  */
 require_once __DIR__ . '/header.php';
-$config = require_once dirname(__DIR__) . '/src/config.php';
+
 ?>
 
 <main class="main-content">
@@ -68,19 +68,19 @@ $config = require_once dirname(__DIR__) . '/src/config.php';
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
                         <label class="form-label">Application Name</label>
-                        <input type="text" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName']); ?>">
+                        <input type="text" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Developer Name</label>
-                        <input type="text" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName']); ?>">
+                        <input type="text" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Company Name</label>
-                        <input type="text" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName']); ?>">
+                        <input type="text" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Company URL</label>
-                        <input type="text" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl']); ?>">
+                        <input type="text" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl'] ?? ''); ?>">
                     </div>
                 </div>
             </div>
