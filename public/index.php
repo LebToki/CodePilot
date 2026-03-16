@@ -64,10 +64,10 @@ $projectPath = $_GET['project'] ?? '';
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="toggleFileBrowser()" title="Toggle Files">
+                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="toggleFileBrowser()" title="Toggle Files" aria-label="Toggle files panel">
                         <iconify-icon icon="mdi:file-tree"></iconify-icon>
                     </button>
-                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="closeProject()" title="Close Project">
+                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="closeProject()" title="Close Project" aria-label="Close project">
                         <iconify-icon icon="mdi:close"></iconify-icon>
                     </button>
                 </div>
@@ -107,7 +107,7 @@ $projectPath = $_GET['project'] ?? '';
         
         <div class="chat-input-container">
             <div class="chat-input-wrapper">
-                <button class="btn-icon" id="add-context-btn" onclick="addFileContext()" title="Add file to context" style="display: none;">
+                <button class="btn-icon" id="add-context-btn" onclick="addFileContext()" title="Add file to context" aria-label="Add file to context" style="display: none;">
                     <iconify-icon icon="mdi:file-plus"></iconify-icon>
                 </button>
                 <textarea 
@@ -117,7 +117,7 @@ $projectPath = $_GET['project'] ?? '';
                     rows="1"
                     onkeydown="handleKeyDown(event)"
                 ></textarea>
-                <button class="btn-icon primary" id="send-btn" onclick="sendMessage()" title="Send">
+                <button class="btn-icon primary" id="send-btn" onclick="sendMessage()" title="Send" aria-label="Send message">
                     <iconify-icon icon="mdi:send"></iconify-icon>
                 </button>
             </div>
@@ -147,10 +147,10 @@ $projectPath = $_GET['project'] ?? '';
                         <option value="css">CSS</option>
                         <option value="json">JSON</option>
                     </select>
-                    <button class="btn-icon" onclick="saveFile()" title="Save File">
+                    <button class="btn-icon" onclick="saveFile()" title="Save File" aria-label="Save file">
                         <iconify-icon icon="mdi:content-save"></iconify-icon>
                     </button>
-                    <button class="btn-icon" onclick="copyCode()" title="Copy Code">
+                    <button class="btn-icon" onclick="copyCode()" title="Copy Code" aria-label="Copy code">
                         <iconify-icon icon="mdi:content-copy"></iconify-icon>
                     </button>
                 </div>
@@ -295,6 +295,85 @@ $projectPath = $_GET['project'] ?? '';
         }
     });
     
+        // Toggle search panel
+    function toggleSearch() {
+        const panel = document.getElementById('file-search-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        if (panel.style.display === 'block') {
+            document.getElementById('file-search-input').focus();
+        }
+    }
+
+    // Execute file search
+    async function executeFileSearch() {
+        const query = document.getElementById('file-search-input').value.trim();
+        const resultsContainer = document.getElementById('file-search-results');
+
+        if (!query || !currentProject) return;
+
+        resultsContainer.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 10px;">Searching...</div>';
+
+        try {
+            const response = await fetch(`api/files.php?action=search&path=${encodeURIComponent(currentProject)}&query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            if (!data.results || data.results.length === 0) {
+                resultsContainer.innerHTML = '<div style="color: var(--text-muted); padding: 5px;">No matches found.</div>';
+                return;
+            }
+
+            let html = '';
+            data.results.forEach(file => {
+                html += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-weight: bold; color: var(--accent); cursor: pointer; padding: 2px 0;" onclick="openFileAndGoToLine('${file.path.replace(/\\/g, '/')}')">
+                            <iconify-icon icon="mdi:file-document"></iconify-icon> ${file.name}
+                        </div>
+                `;
+
+                if (file.matches && file.matches.length > 0) {
+                    file.matches.forEach(match => {
+                        html += `
+                            <div style="padding-left: 16px; cursor: pointer; color: var(--text-secondary); padding: 2px 0;" onclick="openFileAndGoToLine('${file.path.replace(/\\/g, '/')}', ${match.line})">
+                                <span style="color: var(--text-muted); width: 30px; display: inline-block;">${match.line}</span>
+                                <span style="background: var(--bg-tertiary); padding: 0 4px; border-radius: 2px;">${escapeHtml(match.text)}</span>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div>`;
+            });
+
+            resultsContainer.innerHTML = html;
+
+        } catch (error) {
+            resultsContainer.innerHTML = `<div style="color: var(--error); padding: 5px;">${error.message}</div>`;
+        }
+    }
+
+    // Open file and optionally go to line
+    async function openFileAndGoToLine(path, line = null) {
+        await openFile(path);
+
+        if (line && window.monacoEditor) {
+            setTimeout(() => {
+                window.monacoEditor.revealLineInCenter(line);
+                window.monacoEditor.setPosition({ lineNumber: line, column: 1 });
+            }, 100);
+        }
+    }
+
+    // Helper to escape HTML for search results
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
     // Load project
     function loadProject(path) {
         currentProject = path;

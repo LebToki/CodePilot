@@ -1213,9 +1213,20 @@ function getProjectInfo($path) {
  */
 function countFiles($path) {
     $count = 0;
-    $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
-    );
+    $dirIterator = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
+
+    // Skip large common directories to improve performance
+    $filterIterator = new RecursiveCallbackFilterIterator($dirIterator, function ($current, $key, $iterator) {
+        if ($iterator->hasChildren()) {
+            $filename = $current->getFilename();
+            if (in_array($filename, ['node_modules', 'vendor', '.git', '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'dist', 'build', 'coverage'])) {
+                return false;
+            }
+        }
+        return true;
+    });
+
+    $iterator = new RecursiveIteratorIterator($filterIterator);
     
     foreach ($iterator as $file) {
         if ($file->isFile()) $count++;

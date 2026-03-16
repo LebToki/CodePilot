@@ -237,11 +237,17 @@ function listProcesses() {
  * Kill a process by PID
  */
 function killProcess($pid) {
+    // Security: Validate that PID is an integer to prevent command injection
+    $pid = (int)$pid;
+    if ($pid <= 0) {
+        throw new Exception('Invalid PID');
+    }
+
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        $result = shell_exec("taskkill /PID $pid /F");
+        $result = shell_exec("taskkill /PID " . escapeshellarg($pid) . " /F");
         return ['success' => strpos($result, 'SUCCESS') !== false, 'output' => $result];
     } else {
-        $result = shell_exec("kill -9 $pid 2>&1");
+        $result = shell_exec("kill -9 " . escapeshellarg($pid) . " 2>&1");
         return ['success' => empty($result), 'output' => $result];
     }
 }

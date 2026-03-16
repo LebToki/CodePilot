@@ -12,6 +12,7 @@ $path = $_GET['path'] ?? $_POST['path'] ?? '';
 // Security: Validate path is within allowed directories
 $allowedPaths = [
     'D:/laragon/www',
+    '/app',
     'E:/platform',
     '/app',
     '/home/jules'
@@ -83,6 +84,16 @@ try {
             echo json_encode($result);
             break;
             
+        case 'search':
+            if (empty($path)) throw new Exception('Path required');
+            $query = $_GET['query'] ?? $_POST['query'] ?? '';
+            if (empty($query)) throw new Exception('Query required');
+            validatePath($path, $allowedPaths);
+
+            $results = searchDirectory($path, $query);
+            echo json_encode(['results' => $results, 'path' => $path, 'query' => $query]);
+            break;
+
         default:
             throw new Exception('Unknown action');
     }
@@ -277,4 +288,78 @@ function renameItem($oldPath, $newPath) {
     }
     
     return ['success' => true, 'path' => $newPath];
+}
+
+/**
+ * Search for a query in directory contents (recursively)
+ */
+function searchDirectory($path, $query) {
+    if (!is_dir($path)) {
+        throw new Exception('Not a directory');
+    }
+
+    $results = [];
+    $ignoredDirs = ['node_modules', 'vendor', '__pycache__', '.git', '.idea', '.vscode', 'dist', 'build', 'generated'];
+
+    // We use a custom filter iterator to easily skip ignored directories
+    class IgnoredDirFilter extends RecursiveFilterIterator {
+        private $ignored;
+        public function __construct($iterator, $ignored = []) {
+            parent::__construct($iterator);
+            $this->ignored = $ignored;
+        }
+        public function accept(): bool {
+            if ($this->hasChildren()) {
+                if (in_array($this->current()->getFilename(), $this->ignored)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public function getChildren(): ?RecursiveFilterIterator {
+            return new self($this->getInnerIterator()->getChildren(), $this->ignored);
+        }
+    }
+
+    $dirIter = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
+    $filter = new IgnoredDirFilter($dirIter, $ignoredDirs);
+    $iterator = new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::SELF_FIRST);
+
+    foreach ($iterator as $file) {
+        if ($file->isFile()) {
+            // simple binary check by size > 1MB
+            if ($file->getSize() > 1024 * 1024) continue;
+
+            $ext = strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION));
+            if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'zip', 'tar', 'gz', 'exe', 'dll', 'so', 'sqlite', 'db'])) continue;
+
+            $filePath = $file->getRealPath();
+            $contents = @file_get_contents($filePath);
+
+            if ($contents !== false && stripos($contents, $query) !== false) {
+                // Find line number and snippet
+                $lines = explode("\n", $contents);
+                $matches = [];
+                foreach ($lines as $index => $line) {
+                    if (stripos($line, $query) !== false) {
+                        $matches[] = [
+                            'line' => $index + 1,
+                            'text' => trim($line)
+                        ];
+                        // Limit to 5 matches per file
+                        if (count($matches) >= 5) break;
+                    }
+                }
+
+                $results[] = [
+                    'path' => str_replace('\\', '/', $filePath),
+                    'name' => $file->getFilename(),
+                    'matches' => $matches
+                ];
+            }
+        }
+    }
+
+    return $results;
 }
