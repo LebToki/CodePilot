@@ -51,10 +51,10 @@ $projectPath = $_GET['project'] ?? '';
                     </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="toggleFileBrowser()" title="Toggle Files">
+                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="toggleFileBrowser()" title="Toggle Files" aria-label="Toggle files panel">
                         <iconify-icon icon="mdi:file-tree"></iconify-icon>
                     </button>
-                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="closeProject()" title="Close Project">
+                    <button class="btn-icon" style="width: 32px; height: 32px;" onclick="closeProject()" title="Close Project" aria-label="Close project">
                         <iconify-icon icon="mdi:close"></iconify-icon>
                     </button>
                 </div>
@@ -94,7 +94,7 @@ $projectPath = $_GET['project'] ?? '';
         
         <div class="chat-input-container">
             <div class="chat-input-wrapper">
-                <button class="btn-icon" id="add-context-btn" onclick="addFileContext()" title="Add file to context" style="display: none;">
+                <button class="btn-icon" id="add-context-btn" onclick="addFileContext()" title="Add file to context" aria-label="Add file to context" style="display: none;">
                     <iconify-icon icon="mdi:file-plus"></iconify-icon>
                 </button>
                 <textarea 
@@ -104,7 +104,7 @@ $projectPath = $_GET['project'] ?? '';
                     rows="1"
                     onkeydown="handleKeyDown(event)"
                 ></textarea>
-                <button class="btn-icon primary" id="send-btn" onclick="sendMessage()" title="Send">
+                <button class="btn-icon primary" id="send-btn" onclick="sendMessage()" title="Send" aria-label="Send message">
                     <iconify-icon icon="mdi:send"></iconify-icon>
                 </button>
             </div>
@@ -134,10 +134,10 @@ $projectPath = $_GET['project'] ?? '';
                         <option value="css">CSS</option>
                         <option value="json">JSON</option>
                     </select>
-                    <button class="btn-icon" onclick="saveFile()" title="Save File">
+                    <button class="btn-icon" onclick="saveFile()" title="Save File" aria-label="Save file">
                         <iconify-icon icon="mdi:content-save"></iconify-icon>
                     </button>
-                    <button class="btn-icon" onclick="copyCode()" title="Copy Code">
+                    <button class="btn-icon" onclick="copyCode()" title="Copy Code" aria-label="Copy code">
                         <iconify-icon icon="mdi:content-copy"></iconify-icon>
                     </button>
                 </div>
