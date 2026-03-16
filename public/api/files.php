@@ -13,6 +13,8 @@ $path = $_GET['path'] ?? $_POST['path'] ?? '';
 $allowedPaths = [
     'D:/laragon/www',
     'E:/platform',
+    '/app',
+    '/home/jules'
 ];
 
 try {
