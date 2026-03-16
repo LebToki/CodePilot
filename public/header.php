@@ -93,7 +93,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <div style="padding: 16px 12px; border-top: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Sessions</span>
-                <button class="btn-icon" style="width: 28px; height: 28px;" onclick="createNewSession()" title="New Session">
+                <button class="btn-icon" style="width: 28px; height: 28px;" onclick="createNewSession()" title="New Session" aria-label="New session">
                     <iconify-icon icon="mdi:plus"></iconify-icon>
                 </button>
             </div>
@@ -125,10 +125,10 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             </select>
         </div>
         <div class="header-right">
-            <button class="btn-icon" onclick="toggleEditor()" title="Toggle Editor">
+            <button class="btn-icon" onclick="toggleEditor()" title="Toggle Editor" aria-label="Toggle code editor">
                 <iconify-icon icon="mdi:code-tags"></iconify-icon>
             </button>
-            <button class="btn-icon" onclick="clearChat()" title="Clear Chat">
+            <button class="btn-icon" onclick="clearChat()" title="Clear Chat" aria-label="Clear chat messages">
                 <iconify-icon icon="mdi:delete-outline"></iconify-icon>
             </button>
         </div>
