@@ -172,9 +172,13 @@ function listDirectory($path) {
         }
     }
     
-    // Sort alphabetically
-    usort($dirs, fn($a, $b) => strcasecmp($a['name'], $b['name']));
-    usort($files, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+    // Sort alphabetically (optimized: array_multisort is much faster than usort with closures)
+    if (!empty($dirs)) {
+        array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $dirs);
+    }
+    if (!empty($files)) {
+        array_multisort(array_column($files, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $files);
+    }
     
     return array_merge($dirs, $files);
 }

@@ -185,10 +185,11 @@ function listProjects($basePath) {
         ];
     }
     
-    // Sort by modified date descending
-    usort($projects, function($a, $b) {
-        return strtotime($b['modified']) - strtotime($a['modified']);
-    });
+    // Sort by modified date descending (optimized: array_multisort avoids calling strtotime in closures)
+    // Note: This relies on the modified date format being lexicographically sortable (Y-m-d H:i)
+    if (!empty($projects)) {
+        array_multisort(array_column($projects, 'modified'), SORT_DESC, SORT_STRING, $projects);
+    }
     
     return $projects;
 }
