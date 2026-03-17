@@ -87,6 +87,12 @@ function isAllowedCommand($command) {
     
     // Normalize command for checking
     $command = trim($command);
+
+    // Security: Prevent command injection via chaining operators and shell metacharacters
+    if (preg_match('/[;&|`$<>\n]/', $command)) {
+        return false;
+    }
+
     $commandLower = strtolower($command);
     
     // Check exact matches
