@@ -22,38 +22,38 @@ require_once __DIR__ . '/header.php';
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                     <div class="form-group">
-                        <label class="form-label">DeepSeek API Key</label>
+                        <label class="form-label" for="deepseekKey">DeepSeek API Key</label>
                         <div style="position: relative;">
-                            <input type="password" name="deepseekKey" class="form-input" value="<?php echo htmlspecialchars($config['deepseek']['apiKey'] ?? ''); ?>" placeholder="sk-...">
-                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)">
+                            <input type="password" id="deepseekKey" name="deepseekKey" class="form-input" value="<?php echo htmlspecialchars($config['deepseek']['apiKey'] ?? ''); ?>" placeholder="sk-...">
+                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)" aria-label="Toggle password visibility" title="Toggle password visibility">
                                 <iconify-icon icon="mdi:eye-outline"></iconify-icon>
                             </button>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Google Gemini API Key</label>
+                        <label class="form-label" for="geminiKey">Google Gemini API Key</label>
                         <div style="position: relative;">
-                            <input type="password" name="geminiKey" class="form-input" value="<?php echo htmlspecialchars($config['gemini']['apiKey'] ?? ''); ?>" placeholder="AIza...">
-                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)">
+                            <input type="password" id="geminiKey" name="geminiKey" class="form-input" value="<?php echo htmlspecialchars($config['gemini']['apiKey'] ?? ''); ?>" placeholder="AIza...">
+                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)" aria-label="Toggle password visibility" title="Toggle password visibility">
                                 <iconify-icon icon="mdi:eye-outline"></iconify-icon>
                             </button>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">HuggingFace API Key (Optional)</label>
+                        <label class="form-label" for="huggingfaceKey">HuggingFace API Key (Optional)</label>
                         <div style="position: relative;">
-                            <input type="password" name="huggingfaceKey" class="form-input" value="<?php echo htmlspecialchars($config['huggingface']['apiKey'] ?? ''); ?>" placeholder="hf_...">
-                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)">
+                            <input type="password" id="huggingfaceKey" name="huggingfaceKey" class="form-input" value="<?php echo htmlspecialchars($config['huggingface']['apiKey'] ?? ''); ?>" placeholder="hf_...">
+                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)" aria-label="Toggle password visibility" title="Toggle password visibility">
                                 <iconify-icon icon="mdi:eye-outline"></iconify-icon>
                             </button>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Ollama API URL</label>
-                        <input type="text" name="ollamaUrl" class="form-input" value="<?php echo htmlspecialchars($config['ollama']['apiUrl'] ?? 'http://localhost:11434/api'); ?>">
+                        <label class="form-label" for="ollamaUrl">Ollama API URL</label>
+                        <input type="text" id="ollamaUrl" name="ollamaUrl" class="form-input" value="<?php echo htmlspecialchars($config['ollama']['apiUrl'] ?? 'http://localhost:11434/api'); ?>">
                     </div>
                 </div>
             </div>
@@ -69,20 +69,20 @@ require_once __DIR__ . '/header.php';
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
-                        <label class="form-label">Application Name</label>
-                        <input type="text" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName'] ?? ''); ?>">
+                        <label class="form-label" for="appName">Application Name</label>
+                        <input type="text" id="appName" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Developer Name</label>
-                        <input type="text" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName'] ?? ''); ?>">
+                        <label class="form-label" for="developerName">Developer Name</label>
+                        <input type="text" id="developerName" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Company Name</label>
-                        <input type="text" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName'] ?? ''); ?>">
+                        <label class="form-label" for="companyName">Company Name</label>
+                        <input type="text" id="companyName" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Company URL</label>
-                        <input type="text" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl'] ?? ''); ?>">
+                        <label class="form-label" for="companyUrl">Company URL</label>
+                        <input type="text" id="companyUrl" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl'] ?? ''); ?>">
                     </div>
                 </div>
             </div>
@@ -97,12 +97,12 @@ require_once __DIR__ . '/header.php';
                 
                 <div style="display: grid; gap: 20px;">
                     <div class="form-group">
-                        <label class="form-label">Web Projects Path (Laragon/www)</label>
-                        <input type="text" name="webWorkspace" class="form-input" value="<?php echo htmlspecialchars($config['workspaces']['web']['path']); ?>">
+                        <label class="form-label" for="webWorkspace">Web Projects Path (Laragon/www)</label>
+                        <input type="text" id="webWorkspace" name="webWorkspace" class="form-input" value="<?php echo htmlspecialchars($config['workspaces']['web']['path']); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Platform Projects Path</label>
-                        <input type="text" name="platformWorkspace" class="form-input" value="<?php echo htmlspecialchars($config['workspaces']['platform']['path']); ?>">
+                        <label class="form-label" for="platformWorkspace">Platform Projects Path</label>
+                        <input type="text" id="platformWorkspace" name="platformWorkspace" class="form-input" value="<?php echo htmlspecialchars($config['workspaces']['platform']['path']); ?>">
                     </div>
                 </div>
             </div>
