@@ -89,7 +89,7 @@ function isAllowedCommand($command) {
     $command = trim($command);
 
     // Security: Prevent command injection via chaining operators and shell metacharacters
-    if (preg_match('/[;&|`$<>\n]/', $command)) {
+    if (preg_match('/[;&|`$<>\n\r]/', $command)) {
         return false;
     }
 
