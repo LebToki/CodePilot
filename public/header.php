@@ -114,13 +114,13 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <select id="provider-select" class="provider-select" onchange="onProviderChange()">
+            <select id="provider-select" class="provider-select" onchange="onProviderChange()" aria-label="Select AI provider">
                 <option value="ollama" <?php echo $defaultProvider === 'ollama' ? 'selected' : ''; ?>>🦙 Ollama (Local)</option>
                 <option value="deepseek" <?php echo $defaultProvider === 'deepseek' ? 'selected' : ''; ?>>🔮 DeepSeek</option>
                 <option value="gemini" <?php echo $defaultProvider === 'gemini' ? 'selected' : ''; ?>>✨ Gemini</option>
                 <option value="huggingface" <?php echo $defaultProvider === 'huggingface' ? 'selected' : ''; ?>>🤗 HuggingFace</option>
             </select>
-            <select id="model-select" class="model-select">
+            <select id="model-select" class="model-select" aria-label="Select AI model">
                 <option value="">Loading models...</option>
             </select>
         </div>

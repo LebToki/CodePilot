@@ -35,13 +35,13 @@ require_once __DIR__ . '/header.php';
                 </h3>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Prompt</label>
+                    <label for="gen-prompt" style="display: block; margin-bottom: 8px; font-weight: 500;">Prompt</label>
                     <textarea id="gen-prompt" class="form-input" rows="3" placeholder="Describe the image you want to create..."></textarea>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                     <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Aspect Ratio</label>
+                        <label for="gen-aspect" style="display: block; margin-bottom: 8px; font-weight: 500;">Aspect Ratio</label>
                         <select id="gen-aspect" class="form-input">
                             <option value="1:1">1:1 (Square)</option>
                             <option value="16:9">16:9 (Landscape)</option>
@@ -51,7 +51,7 @@ require_once __DIR__ . '/header.php';
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Style</label>
+                        <label for="gen-style" style="display: block; margin-bottom: 8px; font-weight: 500;">Style</label>
                         <select id="gen-style" class="form-input">
                             <option value="">None (Natural)</option>
                             <option value="photorealistic">Photorealistic</option>
@@ -114,7 +114,7 @@ require_once __DIR__ . '/header.php';
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Question (optional)</label>
+                    <label for="analyze-prompt" style="display: block; margin-bottom: 8px; font-weight: 500;">Question (optional)</label>
                     <input type="text" id="analyze-prompt" class="form-input" placeholder="What would you like to know about this image?" value="Analyze this image in detail. If it's code, explain it and identify any issues." />
                 </div>
                 

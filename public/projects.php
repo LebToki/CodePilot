@@ -51,12 +51,12 @@ require_once __DIR__ . '/header.php';
         
         <form id="create-form" onsubmit="createProject(event)">
             <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Project Name</label>
+                <label for="project-name" style="display: block; margin-bottom: 8px; font-weight: 500;">Project Name</label>
                 <input type="text" id="project-name" class="form-input" placeholder="my-awesome-project" required pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, dashes, and underscores">
             </div>
             
             <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Workspace</label>
+                <label for="project-workspace" style="display: block; margin-bottom: 8px; font-weight: 500;">Workspace</label>
                 <select id="project-workspace" class="form-input">
                     <option value="web">🌐 Web Projects (C:/laragon/www)</option>
                     <option value="platform">🐍 Platform Projects (E:/platform)</option>
