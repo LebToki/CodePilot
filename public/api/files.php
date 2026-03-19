@@ -172,15 +172,12 @@ function listDirectory($path) {
         }
     }
     
-    // Sort alphabetically
-    // ⚡ Bolt: Replace expensive usort() closures with native array_multisort() for performance gain on large directories
+    // Sort alphabetically (optimized: array_multisort is much faster than usort with closures)
     if (!empty($dirs)) {
-        $dirNames = array_column($dirs, 'name');
-        array_multisort($dirNames, SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $dirs);
+        array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $dirs);
     }
     if (!empty($files)) {
-        $fileNames = array_column($files, 'name');
-        array_multisort($fileNames, SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $files);
+        array_multisort(array_column($files, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $files);
     }
     
     return array_merge($dirs, $files);

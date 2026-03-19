@@ -185,11 +185,10 @@ function listProjects($basePath) {
         ];
     }
     
-    // Sort by modified date descending
-    // ⚡ Bolt: Replace expensive usort() closure with much faster array_multisort() for ~20x performance gain on large lists
+    // Sort by modified date descending (optimized: array_multisort avoids calling strtotime in closures)
+    // Note: This relies on the modified date format being lexicographically sortable (Y-m-d H:i)
     if (!empty($projects)) {
-        $modifiedTimes = array_map('strtotime', array_column($projects, 'modified'));
-        array_multisort($modifiedTimes, SORT_DESC, SORT_NUMERIC, $projects);
+        array_multisort(array_column($projects, 'modified'), SORT_DESC, SORT_STRING, $projects);
     }
     
     return $projects;
