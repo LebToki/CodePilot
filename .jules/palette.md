@@ -1,0 +1,3 @@
+## 2024-05-24 - Form Accessibility
+**Learning:** Found multiple instances where form labels (`<label>`) were not associated with their corresponding inputs (`<input>`) using the `for` and `id` attributes. Additionally, icon-only buttons for toggling password visibility lacked `aria-label` attributes.
+**Action:** Always ensure that every form input has a unique `id` attribute and its corresponding label uses the `for` attribute referencing that `id`. For icon-only interactive elements, ensure an `aria-label` and `title` attribute are present.

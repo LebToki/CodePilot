@@ -305,29 +305,16 @@ function searchDirectory($path, $query) {
     $results = [];
     $ignoredDirs = ['node_modules', 'vendor', '__pycache__', '.git', '.idea', '.vscode', 'dist', 'build', 'generated'];
 
-    // We use a custom filter iterator to easily skip ignored directories
-    class IgnoredDirFilter extends RecursiveFilterIterator {
-        private $ignored;
-        public function __construct($iterator, $ignored = []) {
-            parent::__construct($iterator);
-            $this->ignored = $ignored;
-        }
-        public function accept(): bool {
-            if ($this->hasChildren()) {
-                if (in_array($this->current()->getFilename(), $this->ignored)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public function getChildren(): ?RecursiveFilterIterator {
-            return new self($this->getInnerIterator()->getChildren(), $this->ignored);
-        }
-    }
-
+    // ⚡ Bolt: Replace userland FilterIterator with native RecursiveCallbackFilterIterator for faster traversal and lower memory usage
     $dirIter = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
-    $filter = new IgnoredDirFilter($dirIter, $ignoredDirs);
+    $filter = new RecursiveCallbackFilterIterator($dirIter, function ($current, $key, $iterator) use ($ignoredDirs) {
+        if ($iterator->hasChildren()) {
+            if (in_array($current->getFilename(), $ignoredDirs)) {
+                return false;
+            }
+        }
+        return true;
+    });
     $iterator = new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::SELF_FIRST);
 
     foreach ($iterator as $file) {

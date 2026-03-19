@@ -32,19 +32,19 @@ $projectPath = $_GET['project'] ?? '';
         <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Files</span>
             <div style="display: flex; gap: 4px;">
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('file')" title="New File">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('file')" title="New File" aria-label="New file">
                     <iconify-icon icon="mdi:file-plus" style="font-size: 14px;"></iconify-icon>
                 </button>
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('directory')" title="New Folder">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('directory')" title="New Folder" aria-label="New folder">
                     <iconify-icon icon="mdi:folder-plus" style="font-size: 14px;"></iconify-icon>
                 </button>
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close" aria-label="Close">
                     <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
                 </button>
             </div>
         </div>
         <div style="padding: 8px;">
-            <input type="text" id="file-search" class="form-input" placeholder="Search files..." style="width: 100%; font-size: 12px; padding: 6px 10px;" oninput="filterFiles()">
+            <input type="text" id="file-search" class="form-input" aria-label="Search files" placeholder="Search files..." style="width: 100%; font-size: 12px; padding: 6px 10px;" oninput="filterFiles()">
         </div>
         <div class="file-tree" id="file-tree" style="height: calc(100% - 100px); overflow-y: auto;">
             <!-- Files loaded here -->
@@ -111,7 +111,7 @@ $projectPath = $_GET['project'] ?? '';
                     <iconify-icon icon="mdi:file-plus"></iconify-icon>
                 </button>
                 <textarea 
-                    id="chat-input" 
+                    id="chat-input" aria-label="Chat input"
                     class="chat-input" 
                     placeholder="Ask me anything about code..."
                     rows="1"
@@ -138,7 +138,7 @@ $projectPath = $_GET['project'] ?? '';
                     <button class="editor-tab" data-tab="tools">AI Tools</button>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <select id="language-select" class="model-select" style="min-width: 120px;">
+                    <select id="language-select" class="model-select" style="min-width: 120px;" aria-label="Select source language">
                         <option value="javascript">JavaScript</option>
                         <option value="python">Python</option>
                         <option value="php">PHP</option>
@@ -160,7 +160,7 @@ $projectPath = $_GET['project'] ?? '';
                 <div id="monaco-editor" class="editor-tab-content active" style="flex: 1;"></div>
                 <div id="terminal-content" class="editor-tab-content" style="display: none; padding: 16px;">
                     <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <input type="text" id="terminal-command" class="form-input" placeholder="Enter command (e.g., npm install, git status, php artisan serve)" style="flex: 1;">
+                        <input type="text" id="terminal-command" class="form-input" aria-label="Terminal command" placeholder="Enter command (e.g., npm install, git status, php artisan serve)" style="flex: 1;">
                         <button class="btn btn-primary" onclick="runCommand()" id="terminal-run-btn">
                             <iconify-icon icon="mdi:play"></iconify-icon>
                             Run
@@ -203,7 +203,7 @@ $projectPath = $_GET['project'] ?? '';
                 <div id="tools-content" class="editor-tab-content" style="display: none; padding: 16px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                         <div>
-                            <label style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Source Language</label>
+                            <label for="tools-source-lang" style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Source Language</label>
                             <select id="tools-source-lang" class="form-input">
                                 <option value="javascript">JavaScript</option>
                                 <option value="python">Python</option>
@@ -216,7 +216,7 @@ $projectPath = $_GET['project'] ?? '';
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Target Language (for conversion)</label>
+                            <label for="tools-target-lang" style="display: block; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);">Target Language (for conversion)</label>
                             <select id="tools-target-lang" class="form-input">
                                 <option value="javascript">JavaScript</option>
                                 <option value="python">Python</option>
@@ -442,10 +442,10 @@ $projectPath = $_GET['project'] ?? '';
                         <span>${file.name}</span>
                     </div>
                     <div class="file-actions" onclick="event.stopPropagation();">
-                        <button onclick="renameFileItem(event, '${file.path.replace(/\\/g, '\\\\')}', '${file.name}')" title="Rename">
+                        <button onclick="renameFileItem(event, '${file.path.replace(/\\/g, '\\\\')}', '${file.name}')" title="Rename" aria-label="Rename file">
                             <iconify-icon icon="mdi:pencil" style="font-size: 14px;"></iconify-icon>
                         </button>
-                        <button onclick="deleteFileItem(event, '${file.path.replace(/\\/g, '\\\\')}')" title="Delete">
+                        <button onclick="deleteFileItem(event, '${file.path.replace(/\\/g, '\\\\')}')" title="Delete" aria-label="Delete file">
                             <iconify-icon icon="mdi:delete" style="font-size: 14px;"></iconify-icon>
                         </button>
                     </div>
