@@ -32,13 +32,13 @@ $projectPath = $_GET['project'] ?? '';
         <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Files</span>
             <div style="display: flex; gap: 4px;">
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('file')" title="New File">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('file')" title="New File" aria-label="New file">
                     <iconify-icon icon="mdi:file-plus" style="font-size: 14px;"></iconify-icon>
                 </button>
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('directory')" title="New Folder">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="createNewItem('directory')" title="New Folder" aria-label="New folder">
                     <iconify-icon icon="mdi:folder-plus" style="font-size: 14px;"></iconify-icon>
                 </button>
-                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close">
+                <button class="btn-icon" style="width: 24px; height: 24px;" onclick="toggleFileBrowser()" title="Close" aria-label="Close">
                     <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
                 </button>
             </div>
@@ -442,10 +442,10 @@ $projectPath = $_GET['project'] ?? '';
                         <span>${file.name}</span>
                     </div>
                     <div class="file-actions" onclick="event.stopPropagation();">
-                        <button onclick="renameFileItem(event, '${file.path.replace(/\\/g, '\\\\')}', '${file.name}')" title="Rename">
+                        <button onclick="renameFileItem(event, '${file.path.replace(/\\/g, '\\\\')}', '${file.name}')" title="Rename" aria-label="Rename file">
                             <iconify-icon icon="mdi:pencil" style="font-size: 14px;"></iconify-icon>
                         </button>
-                        <button onclick="deleteFileItem(event, '${file.path.replace(/\\/g, '\\\\')}')" title="Delete">
+                        <button onclick="deleteFileItem(event, '${file.path.replace(/\\/g, '\\\\')}')" title="Delete" aria-label="Delete file">
                             <iconify-icon icon="mdi:delete" style="font-size: 14px;"></iconify-icon>
                         </button>
                     </div>
