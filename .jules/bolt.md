@@ -5,3 +5,7 @@
 ## 2025-03-01 - [Optimize array sorting in API endpoints]
 **Learning:** `usort()` with closure callbacks (like `strcasecmp` or `strtotime`) is significantly slower in PHP when sorting large arrays of associative arrays due to overhead of executing user-defined functions repeatedly.
 **Action:** Use `array_multisort()` combined with `array_column()` for a native C-level sorting performance, leading to substantial speedups when dealing with list APIs.
+
+## 2026-03-20 - [Optimize directory listing with FilesystemIterator]
+**Learning:** `scandir()` requires loading all file names into a large array at once, which consumes more memory. While PHP natively caches `stat()` calls, iterating with `scandir()` over large directories is still less efficient than lazy iteration.
+**Action:** Use `FilesystemIterator` when iterating over directories. This reduces the memory footprint via lazy iteration. Note: Always wrap `SplFileInfo` methods like `getSize()` and `getMTime()` in a `try-catch` block, as they will throw a `RuntimeException` for unreadable files or broken symlinks.
