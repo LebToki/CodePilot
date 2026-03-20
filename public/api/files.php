@@ -140,25 +140,38 @@ function listDirectory($path) {
     }
     
     $items = [];
-    $entries = scandir($path);
     
     // Directories first
     $dirs = [];
     $files = [];
     
-    foreach ($entries as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
+    // ⚡ Bolt: Replace scandir() with FilesystemIterator to reduce memory footprint via lazy iteration over large directories
+    $iterator = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
+
+    foreach ($iterator as $fileInfo) {
+        $entry = $fileInfo->getFilename();
+        $isDir = $fileInfo->isDir();
+        $fullPath = $fileInfo->getPathname();
+
+        $size = null;
+        $modified = date('Y-m-d H:i'); // Fallback
         
-        $fullPath = $path . '/' . $entry;
-        $isDir = is_dir($fullPath);
+        try {
+            if (!$isDir) {
+                $size = $fileInfo->getSize();
+            }
+            $modified = date('Y-m-d H:i', $fileInfo->getMTime());
+        } catch (RuntimeException $e) {
+            // Ignore unreadable files or broken symlinks to prevent API crash
+        }
         
         $item = [
             'name' => $entry,
             'path' => str_replace('\\', '/', $fullPath),
             'isDir' => $isDir,
-            'size' => $isDir ? null : filesize($fullPath),
-            'modified' => date('Y-m-d H:i', filemtime($fullPath)),
-            'extension' => $isDir ? null : strtolower(pathinfo($entry, PATHINFO_EXTENSION)),
+            'size' => $size,
+            'modified' => $modified,
+            'extension' => $isDir ? null : strtolower($fileInfo->getExtension()),
         ];
         
         if ($isDir) {
