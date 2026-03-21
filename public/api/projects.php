@@ -166,22 +166,31 @@ function listProjects($basePath) {
         return $projects;
     }
     
-    $dirs = scandir($basePath);
-    foreach ($dirs as $dir) {
-        if ($dir === '.' || $dir === '..') continue;
+    // ⚡ Bolt: Replace scandir() with FilesystemIterator to reduce memory footprint via lazy iteration over large directories
+    $iterator = new FilesystemIterator($basePath, FilesystemIterator::SKIP_DOTS);
+
+    foreach ($iterator as $fileInfo) {
+        if (!$fileInfo->isDir()) continue;
         
-        $fullPath = $basePath . '/' . $dir;
-        if (!is_dir($fullPath)) continue;
+        $dir = $fileInfo->getFilename();
+        $fullPath = str_replace('\\', '/', $fileInfo->getPathname());
         
         // Skip hidden directories and common non-project dirs
         if (strpos($dir, '.') === 0) continue;
         if (in_array($dir, ['node_modules', 'vendor', '__pycache__', '.git'])) continue;
         
+        $modified = date('Y-m-d H:i'); // Fallback
+        try {
+            $modified = date('Y-m-d H:i', $fileInfo->getMTime());
+        } catch (RuntimeException $e) {
+            // Ignore unreadable files or broken symlinks to prevent API crash
+        }
+
         $projects[] = [
             'name' => $dir,
             'path' => $fullPath,
             'type' => detectProjectType($fullPath),
-            'modified' => date('Y-m-d H:i', filemtime($fullPath)),
+            'modified' => $modified,
         ];
     }
     
