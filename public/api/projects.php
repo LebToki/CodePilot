@@ -1181,8 +1181,17 @@ function isValidProjectPath($path, $workspaces) {
     
     foreach ($workspaces as $ws) {
         $wsPath = realpath($ws['path']);
-        if ($wsPath && strpos($realPath, $wsPath) === 0) {
-            return true;
+        if ($wsPath) {
+            if ($realPath === $wsPath) {
+                return true;
+            }
+
+            $normalizedReal = str_replace('\\', '/', $realPath);
+            $normalizedAllowed = rtrim(str_replace('\\', '/', $wsPath), '/') . '/';
+
+            if (strpos($normalizedReal, $normalizedAllowed) === 0) {
+                return true;
+            }
         }
     }
     

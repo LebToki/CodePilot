@@ -13,3 +13,8 @@
 **Learning:** When dealing with structured text files where line breaks determine the structure (like `.env`, `ini`, or CSV files), user input MUST be explicitly stripped of all newline characters (`\r` and `\n`) before interpolation. Relying only on `trim()` is insufficient as it only removes whitespace at the boundaries, not within the payload.
 
 **Prevention:** Sanitize all user input destined for line-based configuration files by explicitly stripping `\r` and `\n` characters (e.g., using `str_replace(["\r", "\n"], '', $value)` in PHP) to ensure the input remains strictly on a single line.
+
+## 2024-05-25 - Path Validation Bypass (Directory Traversal)
+**Vulnerability:** In `validatePath` and `isValidProjectPath` across multiple API files (`files.php`, `terminal.php`, `projects.php`, `src/Utils/Security.php`), the code used `strpos($realPath, $allowedReal) === 0` to check if a user-supplied path was within an allowed directory.
+**Learning:** This is a classic path traversal bypass in PHP. Because it only checks for a string prefix, an allowed path like `/var/www` will successfully match a malicious sibling directory like `/var/www_backup` or `/var/www-secret`.
+**Prevention:** Always append a trailing directory separator (`/`) to the allowed path prefix before checking with `strpos`, or perform an exact match if the paths are identical. For example: `strpos($realPath, rtrim($allowedReal, '/') . '/') === 0`.
