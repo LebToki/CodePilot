@@ -45,8 +45,17 @@ class Security
         
         foreach ($allowedPaths as $allowedPath) {
             $realAllowedPath = realpath($allowedPath);
-            if ($realAllowedPath && strpos($realPath, $realAllowedPath) === 0) {
-                return $realPath;
+            if ($realAllowedPath) {
+                if ($realPath === $realAllowedPath) {
+                    return $realPath;
+                }
+
+                $normalizedReal = str_replace('\\', '/', $realPath);
+                $normalizedAllowed = rtrim(str_replace('\\', '/', $realAllowedPath), '/') . '/';
+
+                if (strpos($normalizedReal, $normalizedAllowed) === 0) {
+                    return $realPath;
+                }
             }
         }
         
