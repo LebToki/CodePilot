@@ -327,26 +327,29 @@ function searchDirectory($path, $query) {
 
     $results = [];
     $ignoredDirs = ['node_modules', 'vendor', '__pycache__', '.git', '.idea', '.vscode', 'dist', 'build', 'generated'];
+    $ignoredDirsFlipped = array_flip($ignoredDirs);
 
     // ⚡ Bolt: Replace userland FilterIterator with native RecursiveCallbackFilterIterator for faster traversal and lower memory usage
     $dirIter = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
-    $filter = new RecursiveCallbackFilterIterator($dirIter, function ($current, $key, $iterator) use ($ignoredDirs) {
+    $filter = new RecursiveCallbackFilterIterator($dirIter, function ($current, $key, $iterator) use ($ignoredDirsFlipped) {
         if ($iterator->hasChildren()) {
-            if (in_array($current->getFilename(), $ignoredDirs)) {
+            if (isset($ignoredDirsFlipped[$current->getFilename()])) {
                 return false;
             }
         }
         return true;
     });
     $iterator = new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::SELF_FIRST);
+    $ignoredExtsFlipped = array_flip(['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'zip', 'tar', 'gz', 'exe', 'dll', 'so', 'sqlite', 'db']);
 
     foreach ($iterator as $file) {
         if ($file->isFile()) {
             // simple binary check by size > 1MB
             if ($file->getSize() > 1024 * 1024) continue;
 
-            $ext = strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION));
-            if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'zip', 'tar', 'gz', 'exe', 'dll', 'so', 'sqlite', 'db'])) continue;
+            // ⚡ Bolt: Use getExtension() and isset() with flipped array for faster file extension checking
+            $ext = strtolower($file->getExtension());
+            if (isset($ignoredExtsFlipped[$ext])) continue;
 
             $filePath = $file->getRealPath();
             $contents = @file_get_contents($filePath);
