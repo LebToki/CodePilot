@@ -18,3 +18,11 @@
 **Vulnerability:** In `validatePath` and `isValidProjectPath` across multiple API files (`files.php`, `terminal.php`, `projects.php`, `src/Utils/Security.php`), the code used `strpos($realPath, $allowedReal) === 0` to check if a user-supplied path was within an allowed directory.
 **Learning:** This is a classic path traversal bypass in PHP. Because it only checks for a string prefix, an allowed path like `/var/www` will successfully match a malicious sibling directory like `/var/www_backup` or `/var/www-secret`.
 **Prevention:** Always append a trailing directory separator (`/`) to the allowed path prefix before checking with `strpos`, or perform an exact match if the paths are identical. For example: `strpos($realPath, rtrim($allowedReal, '/') . '/') === 0`.
+
+## 2024-05-26 - [CRITICAL] Reflected XSS in index.php via `addslashes`
+
+**Vulnerability:** In `public/index.php`, the `$projectPath` variable (sourced from user input) was passed to the frontend JavaScript using `addslashes()`. This function only escapes single/double quotes, backslashes, and NUL characters. It failed to escape or encode HTML tags like `<` and `>`, allowing an attacker to break out of the script tag context using `</script>` and execute arbitrary JavaScript.
+
+**Learning:** `addslashes()` is insufficient for securely embedding PHP variables inside JavaScript strings within an HTML document. Even if quotes are escaped, the browser's HTML parser runs before the JavaScript engine, so a literal `</script>` string inside a JS string literal will terminate the script block prematurely.
+
+**Prevention:** Always use `json_encode($variable)` when embedding PHP data into JavaScript. This safely handles quotes, special characters, and HTML tags (with proper flags or encoding), ensuring the data remains safely within the JS context.

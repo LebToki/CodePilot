@@ -261,7 +261,7 @@ $projectPath = $_GET['project'] ?? '';
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
     // Current project state
-    let currentProject = localStorage.getItem('codepilot_project') || '<?php echo addslashes($projectPath); ?>';
+    let currentProject = localStorage.getItem('codepilot_project') || <?php echo json_encode($projectPath, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
     let currentFile = null;
     let openFiles = {}; // Store open file models
     
