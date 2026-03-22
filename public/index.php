@@ -574,9 +574,9 @@ $projectPath = $_GET['project'] ?? '';
         for (const [path, file] of Object.entries(openFiles)) {
             const isActive = path === currentFile;
             html += `
-                <div class="file-tab ${isActive ? 'active' : ''}" onclick="switchToFile('${path.replace(/\\/g, '\\\\')}')">
+                <div class="file-tab ${isActive ? 'active' : ''}" role="button" tabindex="0" aria-label="Switch to ${file.name}" title="${file.name}" onclick="switchToFile('${path.replace(/\\/g, '\\\\')}')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.stopPropagation(); switchToFile('${path.replace(/\\/g, '\\\\')}'); event.preventDefault(); }">
                     <span style="font-size: 13px;">${file.name}</span>
-                    <div class="close-btn" onclick="event.stopPropagation(); closeFile('${path.replace(/\\/g, '\\\\')}')">
+                    <div class="close-btn" role="button" tabindex="0" aria-label="Close ${file.name}" title="Close ${file.name}" onclick="event.stopPropagation(); closeFile('${path.replace(/\\/g, '\\\\')}')" onkeydown="if(event.key==='Enter'||event.key===' ') { event.stopPropagation(); closeFile('${path.replace(/\\/g, '\\\\')}'); event.preventDefault(); }">
                         <iconify-icon icon="mdi:close" style="font-size: 14px;"></iconify-icon>
                     </div>
                 </div>
