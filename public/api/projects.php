@@ -1235,10 +1235,12 @@ function countFiles($path) {
     $dirIterator = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
 
     // Skip large common directories to improve performance
-    $filterIterator = new RecursiveCallbackFilterIterator($dirIterator, function ($current, $key, $iterator) {
+    // ⚡ Bolt: Pre-compute ignored directories as flipped array outside loop for faster O(1) isset() lookups
+    $ignoredDirs = array_flip(['node_modules', 'vendor', '.git', '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'dist', 'build', 'coverage']);
+    $filterIterator = new RecursiveCallbackFilterIterator($dirIterator, function ($current, $key, $iterator) use ($ignoredDirs) {
         if ($iterator->hasChildren()) {
             $filename = $current->getFilename();
-            if (in_array($filename, ['node_modules', 'vendor', '.git', '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'dist', 'build', 'coverage'])) {
+            if (isset($ignoredDirs[$filename])) {
                 return false;
             }
         }
