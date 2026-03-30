@@ -82,10 +82,12 @@ function handleKeyDown(event) {
 // Auto-resize textarea
 function autoResizeTextarea() {
     const textarea = document.getElementById('chat-input');
-    textarea.addEventListener('input', () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-    });
+    if (textarea) {
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        });
+    }
 }
 
 // Send message

@@ -6,8 +6,8 @@ require_once __DIR__ . '/header.php';
 
 ?>
 
-<main class="main-content">
-    <div style="padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%;">
+<main class="main-content" style="overflow-y: auto; max-height: calc(100vh - 60px);">
+    <div style="padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px;">
         <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 8px;">Settings</h1>
         <p style="color: var(--text-secondary); margin-bottom: 32px;">Configure your AI providers and preferences</p>
 
