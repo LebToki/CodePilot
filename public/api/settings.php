@@ -43,13 +43,19 @@ try {
         'appName' => 'APP_NAME',
         'deepseekKey' => 'DEEPSEEK_API_KEY',
         'geminiKey' => 'GEMINI_API_KEY',
+        'qwenKey' => 'QWEN_API_KEY',
         'huggingfaceKey' => 'HUGGINGFACE_API_KEY',
         'ollamaUrl' => 'OLLAMA_API_URL',
+        'qwenUrl' => 'QWEN_API_URL',
+        'defaultProvider' => 'DEFAULT_PROVIDER',
+        'defaultModel' => 'DEFAULT_MODEL',
         'developerName' => 'DEVELOPER_NAME',
         'companyName' => 'COMPANY_NAME',
         'companyUrl' => 'COMPANY_URL',
         'webWorkspace' => 'WEB_WORKSPACE_PATH',
-        'platformWorkspace' => 'PLATFORM_WORKSPACE_PATH'
+        'platformWorkspace' => 'PLATFORM_WORKSPACE_PATH',
+        'debug' => 'APP_DEBUG',
+        'environment' => 'APP_ENV'
     ];
 
     $updatedKeys = [];

@@ -121,17 +121,14 @@ $config = [
         'apiKey' => $envData['GEMINI_API_KEY'] ?? '',
         'timeout' => (int)($envData['GEMINI_TIMEOUT'] ?? 120),
         'models' => [
-            // Gemini 2.5 (Latest)
+            // Gemini 2.5 (Latest - 2025)
             'gemini-2.5-pro-preview-06-05' => 'Gemini 2.5 Pro',
             'gemini-2.5-flash-preview-05-20' => 'Gemini 2.5 Flash',
-            // Gemini 2.0
+            // Gemini 2.0 (Current stable)
             'gemini-2.0-flash' => 'Gemini 2.0 Flash',
             'gemini-2.0-flash-lite' => 'Gemini 2.0 Flash Lite',
-            // Gemini 1.5
-            'gemini-1.5-pro' => 'Gemini 1.5 Pro',
-            'gemini-1.5-flash' => 'Gemini 1.5 Flash',
-            // Experimental
             'gemini-2.0-flash-thinking-exp' => 'Gemini 2.0 Thinking (Exp)',
+            // Note: Gemini 1.x models discontinued
         ],
     ],
     
