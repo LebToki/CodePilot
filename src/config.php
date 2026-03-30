@@ -96,7 +96,7 @@ $config = [
     // Default Provider
     'defaultProvider' => $envData['DEFAULT_PROVIDER'] ?? 'deepseek',
     'defaultModel' => $envData['DEFAULT_MODEL'] ?? 'deepseek-chat',
-    'allowedProviders' => ['ollama', 'deepseek', 'gemini', 'huggingface'],
+    'allowedProviders' => ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen'],
     
     // Ollama
     'ollama' => [
@@ -144,6 +144,28 @@ $config = [
             'meta-llama/Llama-3.3-70B-Instruct' => 'Llama 3.3 70B',
             'Qwen/Qwen2.5-Coder-32B-Instruct' => 'Qwen 2.5 Coder 32B',
             'mistralai/Mixtral-8x7B-Instruct-v0.1' => 'Mixtral 8x7B',
+        ],
+    ],
+
+    // Qwen (Alibaba Cloud)
+    'qwen' => [
+        'apiKey' => $envData['QWEN_API_KEY'] ?? '',
+        'apiUrl' => $envData['QWEN_API_URL'] ?? 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        'timeout' => (int)($envData['QWEN_TIMEOUT'] ?? 120),
+        'models' => [
+            // Qwen 2.5 (Latest)
+            'qwen-2.5-72b-instruct' => 'Qwen 2.5 72B Instruct',
+            'qwen-2.5-coder-32b-instruct' => 'Qwen 2.5 Coder 32B',
+            'qwen-2.5-32b-instruct' => 'Qwen 2.5 32B Instruct',
+            'qwen-2.5-14b-instruct' => 'Qwen 2.5 14B Instruct',
+            'qwen-2.5-7b-instruct' => 'Qwen 2.5 7B Instruct',
+            // Qwen Max
+            'qwen-max' => 'Qwen Max',
+            'qwen-max-longcontext' => 'Qwen Max Long Context',
+            // Qwen Plus
+            'qwen-plus' => 'Qwen Plus',
+            // Qwen Turbo
+            'qwen-turbo' => 'Qwen Turbo',
         ],
     ],
     

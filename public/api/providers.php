@@ -40,6 +40,12 @@ switch ($action) {
                     'icon' => '🤗',
                     'configured' => !empty($config['huggingface']['apiKey']),
                 ],
+                [
+                    'id' => 'qwen',
+                    'name' => 'Qwen (Alibaba)',
+                    'icon' => '💫',
+                    'configured' => !empty($config['qwen']['apiKey']),
+                ],
             ],
         ]);
         break;
@@ -77,6 +83,10 @@ function getModelsForProvider($provider, $config) {
             return array_map(function($name, $id) {
                 return ['id' => $id, 'name' => $name];
             }, $config['huggingface']['models'], array_keys($config['huggingface']['models']));
+        case 'qwen':
+            return array_map(function($name, $id) {
+                return ['id' => $id, 'name' => $name];
+            }, $config['qwen']['models'], array_keys($config['qwen']['models']));
         default:
             return [];
     }

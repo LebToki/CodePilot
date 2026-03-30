@@ -313,6 +313,73 @@ function runCommand(command = null) {
     });
 }
 
+
+async function loadProcesses() {
+    const container = document.getElementById('running-processes');
+    if (!container) return;
+
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 8px;"><iconify-icon icon="mdi:loading" class="spin"></iconify-icon> Loading processes...</div>';
+
+    try {
+        const response = await fetch('api/terminal.php?action=list-processes');
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        let html = '';
+        if (data.processes && data.processes.length > 0) {
+            html += '<table style="width: 100%; border-collapse: collapse; font-size: 12px;">';
+            html += '<tr style="text-align: left; border-bottom: 1px solid var(--border-color);"><th style="padding: 4px 8px;">PID</th><th style="padding: 4px 8px;">Name/Command</th><th style="padding: 4px 8px; text-align: right;">Action</th></tr>';
+
+            data.processes.forEach(proc => {
+                const pid = typeof proc === 'string' ? '' : proc.pid;
+                const name = typeof proc === 'string' ? proc : proc.name;
+
+                html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 4px 8px; font-family: var(--font-mono);">${pid}</td>
+                    <td style="padding: 4px 8px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${name}">${name}</td>
+                    <td style="padding: 4px 8px; text-align: right;">
+                        ${pid ? `<button class="btn" onclick="killProcessCmd('${pid}')" style="padding: 2px 6px; font-size: 11px; background: rgba(248, 81, 73, 0.2); color: var(--error); border-color: rgba(248, 81, 73, 0.4);">Kill</button>` : ''}
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+        } else {
+            html = '<div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 8px;">No processes found</div>';
+        }
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        container.innerHTML = `<div style="color: var(--error); font-size: 12px; text-align: center; padding: 8px;">Error: ${error.message}</div>`;
+    }
+}
+
+async function killProcessCmd(pid) {
+    if (!confirm(`Are you sure you want to kill process ${pid}?`)) return;
+
+    try {
+        const response = await fetch('api/terminal.php?action=kill-process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pid })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        document.getElementById('terminal-output').textContent += `
+$ kill -9 ${pid}
+Process killed successfully.
+`;
+        document.getElementById('terminal-output').scrollTop = document.getElementById('terminal-output').scrollHeight;
+
+        loadProcesses();
+    } catch (error) {
+        alert('Error killing process: ' + error.message);
+    }
+}
+
 function clearTerminal() {
     document.getElementById('terminal-output').textContent = '';
 }

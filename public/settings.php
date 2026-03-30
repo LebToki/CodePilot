@@ -3,7 +3,7 @@
  * CodePilot Settings
  */
 require_once __DIR__ . '/header.php';
-$config = require_once dirname(__DIR__) . '/src/config.php';
+
 ?>
 
 <main class="main-content">
@@ -68,19 +68,19 @@ $config = require_once dirname(__DIR__) . '/src/config.php';
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
                         <label class="form-label">Application Name</label>
-                        <input type="text" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName']); ?>">
+                        <input type="text" name="appName" class="form-input" value="<?php echo htmlspecialchars($config['appName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Developer Name</label>
-                        <input type="text" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName']); ?>">
+                        <input type="text" name="developerName" class="form-input" value="<?php echo htmlspecialchars($config['developerName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Company Name</label>
-                        <input type="text" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName']); ?>">
+                        <input type="text" name="companyName" class="form-input" value="<?php echo htmlspecialchars($config['companyName'] ?? ''); ?>">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Company URL</label>
-                        <input type="text" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl']); ?>">
+                        <input type="text" name="companyUrl" class="form-input" value="<?php echo htmlspecialchars($config['companyUrl'] ?? ''); ?>">
                     </div>
                 </div>
             </div>
@@ -104,6 +104,28 @@ $config = require_once dirname(__DIR__) . '/src/config.php';
                 </div>
             </div>
             
+
+            <!-- System Management -->
+            <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+                <h2 style="font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <iconify-icon icon="mdi:server"></iconify-icon>
+                    System
+                </h2>
+
+                <div style="display: grid; gap: 20px;">
+                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <label class="form-label" style="margin-bottom: 4px;">Update CodePilot</label>
+                            <span style="color: var(--text-secondary); font-size: 13px;">Pull the latest changes from the repository</span>
+                        </div>
+                        <button type="button" id="update-btn" class="btn btn-secondary" onclick="updateCodePilot(event)" style="padding: 8px 16px;">
+                            <iconify-icon icon="mdi:github"></iconify-icon>
+                            Pull Updates
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 40px;">
                 <button type="submit" id="save-btn" class="btn btn-primary" style="padding: 12px 32px;">
                     <iconify-icon icon="mdi:content-save"></iconify-icon>
@@ -125,6 +147,51 @@ function togglePassword(btn) {
     } else {
         input.type = 'password';
         icon.setAttribute('icon', 'mdi:eye-outline');
+    }
+}
+
+
+// Update CodePilot
+async function updateCodePilot(event) {
+    event.preventDefault();
+    const btn = document.getElementById('update-btn');
+    const originalContent = btn.innerHTML;
+
+    // Loading state
+    btn.disabled = true;
+    btn.innerHTML = 'Pulling...';
+
+    try {
+        const response = await fetch('api/update.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            btn.style.background = 'var(--success)';
+            btn.innerHTML = '<iconify-icon icon="mdi:check-circle"></iconify-icon> Updated!';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.style.background = '';
+                btn.innerHTML = originalContent;
+                if (confirm('CodePilot has been updated successfully.\n\nOutput:\n' + result.output + '\n\nReload page to apply changes?')) {
+                    window.location.reload();
+                }
+            }, 1000);
+        } else {
+            throw new Error(result.error || 'Failed to update CodePilot');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+        btn.disabled = false;
+        btn.style.background = 'var(--error)';
+        btn.innerHTML = '<iconify-icon icon="mdi:alert-circle"></iconify-icon> Error';
+        setTimeout(() => {
+            btn.style.background = '';
+            btn.innerHTML = originalContent;
+        }, 3000);
     }
 }
 

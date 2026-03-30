@@ -53,7 +53,7 @@ $messages = $input['messages'] ?? [];
 $stream = filter_var($input['stream'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 // Validate provider
-$allowedProviders = ['ollama', 'deepseek', 'gemini', 'huggingface'];
+$allowedProviders = ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen'];
 if (!in_array($provider, $allowedProviders)) {
     http_response_code(400);
     \CodePilot\Utils\Logger::warning('Invalid provider', ['provider' => $provider]);
@@ -135,6 +135,9 @@ try {
             break;
         case 'huggingface':
             $response = callHuggingFace($config, $model, $messages, $stream);
+            break;
+        case 'qwen':
+            $response = callQwen($config, $model, $messages, $stream);
             break;
         default:
             throw new Exception("Unknown provider: $provider");
@@ -300,18 +303,18 @@ function callGemini($config, $model, $messages, $stream) {
 function callHuggingFace($config, $model, $messages, $stream) {
     $apiUrl = $config['huggingface']['apiUrl'] . '/chat/completions';
     $apiKey = $config['huggingface']['apiKey'];
-    
+
     if (empty($apiKey)) {
         throw new Exception("HuggingFace API key not configured");
     }
-    
+
     $data = [
         'model' => $model,
         'messages' => $messages,
         'stream' => false,
         'max_tokens' => 4096,
     ];
-    
+
     $ch = curl_init($apiUrl);
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
@@ -323,15 +326,56 @@ function callHuggingFace($config, $model, $messages, $stream) {
         ],
         CURLOPT_TIMEOUT => 120,
     ]);
-    
+
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
+
     if ($httpCode !== 200) {
         throw new Exception("HuggingFace error ($httpCode): " . $response);
     }
-    
+
+    $result = json_decode($response, true);
+    return $result['choices'][0]['message']['content'] ?? '';
+}
+
+/**
+ * Call Qwen (Alibaba Cloud DashScope) API
+ */
+function callQwen($config, $model, $messages, $stream) {
+    $apiUrl = $config['qwen']['apiUrl'] . '/chat/completions';
+    $apiKey = $config['qwen']['apiKey'];
+
+    if (empty($apiKey)) {
+        throw new Exception("Qwen API key not configured");
+    }
+
+    $data = [
+        'model' => $model,
+        'messages' => $messages,
+        'stream' => false,
+    ];
+
+    $ch = curl_init($apiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ],
+        CURLOPT_TIMEOUT => $config['qwen']['timeout'] ?? 120,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        throw new Exception("Qwen error ($httpCode): " . $response);
+    }
+
     $result = json_decode($response, true);
     return $result['choices'][0]['message']['content'] ?? '';
 }
