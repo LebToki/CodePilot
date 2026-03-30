@@ -87,6 +87,12 @@ function isAllowedCommand($command) {
     
     // Normalize command for checking
     $command = trim($command);
+
+    // Security: Prevent command injection via chaining operators and shell metacharacters
+    if (preg_match('/[;&|`$<>\n\r]/', $command)) {
+        return false;
+    }
+
     $commandLower = strtolower($command);
     
     // Check exact matches
@@ -118,9 +124,19 @@ function validatePath($path, $allowedPaths) {
     $isValid = false;
     foreach ($allowedPaths as $allowed) {
         $allowedReal = realpath($allowed);
-        if ($allowedReal && strpos($realPath, $allowedReal) === 0) {
-            $isValid = true;
-            break;
+        if ($allowedReal) {
+            if ($realPath === $allowedReal) {
+                $isValid = true;
+                break;
+            }
+
+            $normalizedReal = str_replace('\\', '/', $realPath);
+            $normalizedAllowed = rtrim(str_replace('\\', '/', $allowedReal), '/') . '/';
+
+            if (strpos($normalizedReal, $normalizedAllowed) === 0) {
+                $isValid = true;
+                break;
+            }
         }
     }
     

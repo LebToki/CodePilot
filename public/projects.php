@@ -44,19 +44,19 @@ require_once __DIR__ . '/header.php';
     <div class="glass-card" style="width: 100%; max-width: 500px; padding: 32px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <h2 class="text-gradient">New Project</h2>
-            <button class="btn-icon" onclick="closeCreateModal()">
+            <button class="btn-icon" onclick="closeCreateModal()" aria-label="Close modal" title="Close">
                 <iconify-icon icon="mdi:close"></iconify-icon>
             </button>
         </div>
         
         <form id="create-form" onsubmit="createProject(event)">
             <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Project Name</label>
+                <label for="project-name" style="display: block; margin-bottom: 8px; font-weight: 500;">Project Name</label>
                 <input type="text" id="project-name" class="form-input" placeholder="my-awesome-project" required pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, dashes, and underscores">
             </div>
             
             <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Workspace</label>
+                <label for="project-workspace" style="display: block; margin-bottom: 8px; font-weight: 500;">Workspace</label>
                 <select id="project-workspace" class="form-input">
                     <option value="web">🌐 Web Projects (C:/laragon/www)</option>
                     <option value="platform">🐍 Platform Projects (E:/platform)</option>
@@ -380,7 +380,7 @@ async function loadProjects() {
                 <div class="project-meta">
                     <span class="project-date">Modified: ${project.modified}</span>
                     <div class="project-actions">
-                        <button class="btn-icon" style="width: 32px; height: 32px;" onclick="event.stopPropagation(); deleteProject('${project.path.replace(/\\/g, '\\\\')}')" title="Delete">
+                        <button class="btn-icon" style="width: 32px; height: 32px;" onclick="event.stopPropagation(); deleteProject('${project.path.replace(/\\/g, '\\\\')}')" title="Delete" aria-label="Delete project">
                             <iconify-icon icon="mdi:delete-outline"></iconify-icon>
                         </button>
                     </div>

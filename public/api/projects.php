@@ -166,29 +166,39 @@ function listProjects($basePath) {
         return $projects;
     }
     
-    $dirs = scandir($basePath);
-    foreach ($dirs as $dir) {
-        if ($dir === '.' || $dir === '..') continue;
+    // ⚡ Bolt: Replace scandir() with FilesystemIterator to reduce memory footprint via lazy iteration over large directories
+    $iterator = new FilesystemIterator($basePath, FilesystemIterator::SKIP_DOTS);
+
+    foreach ($iterator as $fileInfo) {
+        if (!$fileInfo->isDir()) continue;
         
-        $fullPath = $basePath . '/' . $dir;
-        if (!is_dir($fullPath)) continue;
+        $dir = $fileInfo->getFilename();
+        $fullPath = str_replace('\\', '/', $fileInfo->getPathname());
         
         // Skip hidden directories and common non-project dirs
         if (strpos($dir, '.') === 0) continue;
         if (in_array($dir, ['node_modules', 'vendor', '__pycache__', '.git'])) continue;
         
+        $modified = date('Y-m-d H:i'); // Fallback
+        try {
+            $modified = date('Y-m-d H:i', $fileInfo->getMTime());
+        } catch (RuntimeException $e) {
+            // Ignore unreadable files or broken symlinks to prevent API crash
+        }
+
         $projects[] = [
             'name' => $dir,
             'path' => $fullPath,
             'type' => detectProjectType($fullPath),
-            'modified' => date('Y-m-d H:i', filemtime($fullPath)),
+            'modified' => $modified,
         ];
     }
     
-    // Sort by modified date descending
-    usort($projects, function($a, $b) {
-        return strtotime($b['modified']) - strtotime($a['modified']);
-    });
+    // Sort by modified date descending (optimized: array_multisort avoids calling strtotime in closures)
+    // Note: This relies on the modified date format being lexicographically sortable (Y-m-d H:i)
+    if (!empty($projects)) {
+        array_multisort(array_column($projects, 'modified'), SORT_DESC, SORT_STRING, $projects);
+    }
     
     return $projects;
 }
@@ -1180,8 +1190,17 @@ function isValidProjectPath($path, $workspaces) {
     
     foreach ($workspaces as $ws) {
         $wsPath = realpath($ws['path']);
-        if ($wsPath && strpos($realPath, $wsPath) === 0) {
-            return true;
+        if ($wsPath) {
+            if ($realPath === $wsPath) {
+                return true;
+            }
+
+            $normalizedReal = str_replace('\\', '/', $realPath);
+            $normalizedAllowed = rtrim(str_replace('\\', '/', $wsPath), '/') . '/';
+
+            if (strpos($normalizedReal, $normalizedAllowed) === 0) {
+                return true;
+            }
         }
     }
     
@@ -1216,10 +1235,12 @@ function countFiles($path) {
     $dirIterator = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
 
     // Skip large common directories to improve performance
-    $filterIterator = new RecursiveCallbackFilterIterator($dirIterator, function ($current, $key, $iterator) {
+    // ⚡ Bolt: Pre-compute ignored directories as flipped array outside loop for faster O(1) isset() lookups
+    $ignoredDirs = array_flip(['node_modules', 'vendor', '.git', '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'dist', 'build', 'coverage']);
+    $filterIterator = new RecursiveCallbackFilterIterator($dirIterator, function ($current, $key, $iterator) use ($ignoredDirs) {
         if ($iterator->hasChildren()) {
             $filename = $current->getFilename();
-            if (in_array($filename, ['node_modules', 'vendor', '.git', '__pycache__', '.venv', 'venv', '.idea', '.vscode', 'dist', 'build', 'coverage'])) {
+            if (isset($ignoredDirs[$filename])) {
                 return false;
             }
         }

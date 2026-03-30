@@ -120,9 +120,19 @@ function validatePath($path, $allowedPaths) {
     $isValid = false;
     foreach ($allowedPaths as $allowed) {
         $allowedReal = realpath($allowed);
-        if ($allowedReal && strpos($realPath, $allowedReal) === 0) {
-            $isValid = true;
-            break;
+        if ($allowedReal) {
+            if ($realPath === $allowedReal) {
+                $isValid = true;
+                break;
+            }
+
+            $normalizedReal = str_replace('\\', '/', $realPath);
+            $normalizedAllowed = rtrim(str_replace('\\', '/', $allowedReal), '/') . '/';
+
+            if (strpos($normalizedReal, $normalizedAllowed) === 0) {
+                $isValid = true;
+                break;
+            }
         }
     }
     
@@ -140,25 +150,38 @@ function listDirectory($path) {
     }
     
     $items = [];
-    $entries = scandir($path);
     
     // Directories first
     $dirs = [];
     $files = [];
     
-    foreach ($entries as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
+    // ⚡ Bolt: Replace scandir() with FilesystemIterator to reduce memory footprint via lazy iteration over large directories
+    $iterator = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
+
+    foreach ($iterator as $fileInfo) {
+        $entry = $fileInfo->getFilename();
+        $isDir = $fileInfo->isDir();
+        $fullPath = $fileInfo->getPathname();
+
+        $size = null;
+        $modified = date('Y-m-d H:i'); // Fallback
         
-        $fullPath = $path . '/' . $entry;
-        $isDir = is_dir($fullPath);
+        try {
+            if (!$isDir) {
+                $size = $fileInfo->getSize();
+            }
+            $modified = date('Y-m-d H:i', $fileInfo->getMTime());
+        } catch (RuntimeException $e) {
+            // Ignore unreadable files or broken symlinks to prevent API crash
+        }
         
         $item = [
             'name' => $entry,
             'path' => str_replace('\\', '/', $fullPath),
             'isDir' => $isDir,
-            'size' => $isDir ? null : filesize($fullPath),
-            'modified' => date('Y-m-d H:i', filemtime($fullPath)),
-            'extension' => $isDir ? null : strtolower(pathinfo($entry, PATHINFO_EXTENSION)),
+            'size' => $size,
+            'modified' => $modified,
+            'extension' => $isDir ? null : strtolower($fileInfo->getExtension()),
         ];
         
         if ($isDir) {
@@ -172,9 +195,13 @@ function listDirectory($path) {
         }
     }
     
-    // Sort alphabetically
-    usort($dirs, fn($a, $b) => strcasecmp($a['name'], $b['name']));
-    usort($files, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+    // Sort alphabetically (optimized: array_multisort is much faster than usort with closures)
+    if (!empty($dirs)) {
+        array_multisort(array_column($dirs, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $dirs);
+    }
+    if (!empty($files)) {
+        array_multisort(array_column($files, 'name'), SORT_ASC, SORT_STRING | SORT_FLAG_CASE, $files);
+    }
     
     return array_merge($dirs, $files);
 }
@@ -300,39 +327,29 @@ function searchDirectory($path, $query) {
 
     $results = [];
     $ignoredDirs = ['node_modules', 'vendor', '__pycache__', '.git', '.idea', '.vscode', 'dist', 'build', 'generated'];
+    $ignoredDirsFlipped = array_flip($ignoredDirs);
 
-    // We use a custom filter iterator to easily skip ignored directories
-    class IgnoredDirFilter extends RecursiveFilterIterator {
-        private $ignored;
-        public function __construct($iterator, $ignored = []) {
-            parent::__construct($iterator);
-            $this->ignored = $ignored;
-        }
-        public function accept(): bool {
-            if ($this->hasChildren()) {
-                if (in_array($this->current()->getFilename(), $this->ignored)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public function getChildren(): ?RecursiveFilterIterator {
-            return new self($this->getInnerIterator()->getChildren(), $this->ignored);
-        }
-    }
-
+    // ⚡ Bolt: Replace userland FilterIterator with native RecursiveCallbackFilterIterator for faster traversal and lower memory usage
     $dirIter = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
-    $filter = new IgnoredDirFilter($dirIter, $ignoredDirs);
+    $filter = new RecursiveCallbackFilterIterator($dirIter, function ($current, $key, $iterator) use ($ignoredDirsFlipped) {
+        if ($iterator->hasChildren()) {
+            if (isset($ignoredDirsFlipped[$current->getFilename()])) {
+                return false;
+            }
+        }
+        return true;
+    });
     $iterator = new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::SELF_FIRST);
+    $ignoredExtsFlipped = array_flip(['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'zip', 'tar', 'gz', 'exe', 'dll', 'so', 'sqlite', 'db']);
 
     foreach ($iterator as $file) {
         if ($file->isFile()) {
             // simple binary check by size > 1MB
             if ($file->getSize() > 1024 * 1024) continue;
 
-            $ext = strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION));
-            if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'zip', 'tar', 'gz', 'exe', 'dll', 'so', 'sqlite', 'db'])) continue;
+            // ⚡ Bolt: Use getExtension() and isset() with flipped array for faster file extension checking
+            $ext = strtolower($file->getExtension());
+            if (isset($ignoredExtsFlipped[$ext])) continue;
 
             $filePath = $file->getRealPath();
             $contents = @file_get_contents($filePath);

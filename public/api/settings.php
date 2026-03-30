@@ -63,6 +63,9 @@ try {
         if (isset($input[$formKey])) {
             $value = trim($input[$formKey]);
             
+            // Security: Prevent CRLF injection in .env file
+            $value = str_replace(["\r", "\n"], '', $value);
+
             // Simple validation
             if ($formKey === 'companyUrl' && !empty($value) && !filter_var($value, FILTER_VALIDATE_URL)) {
                 continue; // Skip invalid URLs
