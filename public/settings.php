@@ -72,6 +72,23 @@ require_once __DIR__ . '/header.php';
                         </small>
                     </div>
 
+                    <!-- Mistral AI -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <iconify-icon icon="mdi:weather-windy" style="vertical-align: middle;"></iconify-icon>
+                            Mistral AI API Key
+                        </label>
+                        <div style="position: relative;">
+                            <input type="password" name="mistralKey" class="form-input" value="<?php echo htmlspecialchars($config['mistral']['apiKey'] ?? ''); ?>" placeholder="...">
+                            <button type="button" class="btn-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" onclick="togglePassword(this)">
+                                <iconify-icon icon="mdi:eye-outline"></iconify-icon>
+                            </button>
+                        </div>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 4px;">
+                            <a href="https://console.mistral.ai/api-keys/" target="_blank" style="color: var(--primary);">Get API Key →</a>
+                        </small>
+                    </div>
+
                     <!-- HuggingFace -->
                     <div class="form-group">
                         <label class="form-label">

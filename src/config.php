@@ -96,7 +96,7 @@ $config = [
     // Default Provider
     'defaultProvider' => $envData['DEFAULT_PROVIDER'] ?? 'deepseek',
     'defaultModel' => $envData['DEFAULT_MODEL'] ?? 'deepseek-chat',
-    'allowedProviders' => ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen'],
+    'allowedProviders' => ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen', 'mistral'],
     
     // Ollama
     'ollama' => [
@@ -122,8 +122,10 @@ $config = [
         'timeout' => (int)($envData['GEMINI_TIMEOUT'] ?? 120),
         'models' => [
             // Gemini 2.5 (Latest - 2025)
-            'gemini-2.5-pro-preview-06-05' => 'Gemini 2.5 Pro',
-            'gemini-2.5-flash-preview-05-20' => 'Gemini 2.5 Flash',
+            'gemini-2.5-pro' => 'Gemini 2.5 Pro',
+            'gemini-2.5-pro-preview-06-05' => 'Gemini 2.5 Pro (Preview)',
+            'gemini-2.5-flash' => 'Gemini 2.5 Flash',
+            'gemini-2.5-flash-preview-05-20' => 'Gemini 2.5 Flash (Preview)',
             // Gemini 2.0 (Current stable)
             'gemini-2.0-flash' => 'Gemini 2.0 Flash',
             'gemini-2.0-flash-lite' => 'Gemini 2.0 Flash Lite',
@@ -132,6 +134,10 @@ $config = [
             'gemini-1.5-pro' => 'Gemini 1.5 Pro',
             'gemini-1.5-flash' => 'Gemini 1.5 Flash',
             'gemini-1.5-flash-8b' => 'Gemini 1.5 Flash 8B',
+            // Gemma 3 (Open Models)
+            'gemma-3-27b' => 'Gemma 3 27B',
+            'gemma-3-12b' => 'Gemma 3 12B',
+            'gemma-3-4b' => 'Gemma 3 4B',
         ],
     ],
     
@@ -153,19 +159,53 @@ $config = [
         'apiUrl' => $envData['QWEN_API_URL'] ?? 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         'timeout' => (int)($envData['QWEN_TIMEOUT'] ?? 120),
         'models' => [
-            // Qwen 2.5 (Latest)
+            // Qwen 3.5 (Latest - 2025)
+            'qwen-3.5-235b-a22b' => 'Qwen 3.5 235B A22B',
+            'qwen-3.5-32b' => 'Qwen 3.5 32B',
+            // Qwen 3 (Current)
+            'qwen-3-235b-a22b' => 'Qwen 3 235B A22B',
+            'qwen-3-30b-a3b' => 'Qwen 3 30B A3B',
+            'qwen-3-32b' => 'Qwen 3 32B',
+            // Qwen 2.5
             'qwen-2.5-72b-instruct' => 'Qwen 2.5 72B Instruct',
             'qwen-2.5-coder-32b-instruct' => 'Qwen 2.5 Coder 32B',
             'qwen-2.5-32b-instruct' => 'Qwen 2.5 32B Instruct',
             'qwen-2.5-14b-instruct' => 'Qwen 2.5 14B Instruct',
             'qwen-2.5-7b-instruct' => 'Qwen 2.5 7B Instruct',
-            // Qwen Max
+            // Qwen Max/Plus/Turbo
             'qwen-max' => 'Qwen Max',
             'qwen-max-longcontext' => 'Qwen Max Long Context',
-            // Qwen Plus
             'qwen-plus' => 'Qwen Plus',
-            // Qwen Turbo
             'qwen-turbo' => 'Qwen Turbo',
+            // Qwen Coder (Specialized)
+            'qwen-coder-plus' => 'Qwen Coder Plus',
+            'qwen-coder-turbo' => 'Qwen Coder Turbo',
+            // Qwen VL (Vision)
+            'qwen-vl-max' => 'Qwen VL Max',
+            'qwen-vl-plus' => 'Qwen VL Plus',
+        ],
+    ],
+
+    // Mistral AI
+    'mistral' => [
+        'apiKey' => $envData['MISTRAL_API_KEY'] ?? '',
+        'apiUrl' => $envData['MISTRAL_API_URL'] ?? 'https://api.mistral.ai/v1',
+        'timeout' => (int)($envData['MISTRAL_TIMEOUT'] ?? 120),
+        'models' => [
+            // Mistral Large
+            'mistral-large-latest' => 'Mistral Large (Latest)',
+            'mistral-large-2411' => 'Mistral Large 24.11',
+            // Mistral Small
+            'mistral-small-latest' => 'Mistral Small (Latest)',
+            'mistral-small-3.1' => 'Mistral Small 3.1',
+            // Codestral (Code Specialist)
+            'codestral-latest' => 'Codestral (Latest)',
+            'codestral-2501' => 'Codestral 25.01',
+            // Ministral (Lightweight)
+            'ministral-8b-latest' => 'Ministral 8B',
+            'ministral-3b-latest' => 'Ministral 3B',
+            // Pixtral (Vision)
+            'pixtral-large-latest' => 'Pixtral Large',
         ],
     ],
     

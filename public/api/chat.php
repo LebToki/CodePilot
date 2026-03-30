@@ -53,7 +53,7 @@ $messages = $input['messages'] ?? [];
 $stream = filter_var($input['stream'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 // Validate provider
-$allowedProviders = ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen'];
+$allowedProviders = ['ollama', 'deepseek', 'gemini', 'huggingface', 'qwen', 'mistral'];
 if (!in_array($provider, $allowedProviders)) {
     http_response_code(400);
     \CodePilot\Utils\Logger::warning('Invalid provider', ['provider' => $provider]);
@@ -138,6 +138,9 @@ try {
             break;
         case 'qwen':
             $response = callQwen($config, $model, $messages, $stream);
+            break;
+        case 'mistral':
+            $response = callMistral($config, $model, $messages, $stream);
             break;
         default:
             throw new Exception("Unknown provider: $provider");
@@ -379,3 +382,45 @@ function callQwen($config, $model, $messages, $stream) {
     $result = json_decode($response, true);
     return $result['choices'][0]['message']['content'] ?? '';
 }
+
+/**
+ * Call Mistral AI API
+ */
+function callMistral($config, $model, $messages, $stream) {
+    $apiUrl = $config['mistral']['apiUrl'] . '/chat/completions';
+    $apiKey = $config['mistral']['apiKey'];
+
+    if (empty($apiKey)) {
+        throw new Exception("Mistral AI API key not configured");
+    }
+
+    $data = [
+        'model' => $model,
+        'messages' => $messages,
+        'stream' => false,
+    ];
+
+    $ch = curl_init($apiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ],
+        CURLOPT_TIMEOUT => $config['mistral']['timeout'] ?? 120,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        throw new Exception("Mistral AI error ($httpCode): " . $response);
+    }
+
+    $result = json_decode($response, true);
+    return $result['choices'][0]['message']['content'] ?? '';
+}
+

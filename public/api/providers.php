@@ -35,16 +35,22 @@ switch ($action) {
                     'configured' => !empty($config['gemini']['apiKey']),
                 ],
                 [
-                    'id' => 'huggingface',
-                    'name' => 'HuggingFace',
-                    'icon' => '🤗',
-                    'configured' => !empty($config['huggingface']['apiKey']),
-                ],
-                [
                     'id' => 'qwen',
                     'name' => 'Qwen (Alibaba)',
                     'icon' => '💫',
                     'configured' => !empty($config['qwen']['apiKey']),
+                ],
+                [
+                    'id' => 'mistral',
+                    'name' => 'Mistral AI',
+                    'icon' => '🌬️',
+                    'configured' => !empty($config['mistral']['apiKey']),
+                ],
+                [
+                    'id' => 'huggingface',
+                    'name' => 'HuggingFace',
+                    'icon' => '🤗',
+                    'configured' => !empty($config['huggingface']['apiKey']),
                 ],
             ],
         ]);
@@ -87,6 +93,10 @@ function getModelsForProvider($provider, $config) {
             return array_map(function($name, $id) {
                 return ['id' => $id, 'name' => $name];
             }, $config['qwen']['models'], array_keys($config['qwen']['models']));
+        case 'mistral':
+            return array_map(function($name, $id) {
+                return ['id' => $id, 'name' => $name];
+            }, $config['mistral']['models'], array_keys($config['mistral']['models']));
         default:
             return [];
     }
